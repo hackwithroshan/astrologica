@@ -34,6 +34,7 @@ if (missingVars.length > 0) {
 connectDB();
 
 // Route files
+const healthRoutes = require('./routes/healthRoutes');
 const authRoutes = require('./routes/authRoutes');
 const templeRoutes = require('./routes/templeRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
@@ -50,14 +51,32 @@ const app = express();
 // Body parser
 app.use(express.json());
 
-// Enable CORS with specific origin for security
+// --- START OF NEW FIX: More robust CORS configuration ---
+// This setup handles local development and production environments gracefully.
+
+const allowedOrigins = [
+    'http://localhost:3000',    // For local frontend dev server
+    'http://127.0.0.1:3000',  // Another common local address
+];
+
+// Add the production frontend URL from environment variables if it exists
+if (process.env.FRONTEND_URL) {
+    allowedOrigins.push(process.env.FRONTEND_URL);
+}
+
+// The 'cors' package can directly handle an array of origins.
+// This is simpler and less error-prone than a custom function.
 const corsOptions = {
-    origin: process.env.FRONTEND_URL,
-    optionsSuccessStatus: 200 
+    origin: allowedOrigins,
+    optionsSuccessStatus: 200
 };
+
 app.use(cors(corsOptions));
+// --- END OF NEW FIX ---
+
 
 // Mount routers
+app.use('/api/health', healthRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/temples', templeRoutes);
 app.use('/api/bookings', bookingRoutes);
