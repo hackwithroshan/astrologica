@@ -50,8 +50,12 @@ const app = express();
 // Body parser
 app.use(express.json());
 
-// Enable CORS
-app.use(cors());
+// Enable CORS with specific origin for security
+const corsOptions = {
+    origin: process.env.FRONTEND_URL,
+    optionsSuccessStatus: 200 
+};
+app.use(cors(corsOptions));
 
 // Mount routers
 app.use('/api/auth', authRoutes);
