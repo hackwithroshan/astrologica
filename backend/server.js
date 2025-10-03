@@ -8,15 +8,24 @@ const errorHandler = require('./middleware/error');
 dotenv.config();
 
 // --- START OF FIX: Add comprehensive startup check for all required environment variables ---
-const requiredEnvVars = ['JWT_SECRET', 'RAZORPAY_KEY_ID', 'RAZORPAY_KEY_SECRET', 'MONGO_URI', 'FRONTEND_URL'];
+const requiredEnvVars = [
+    'JWT_SECRET', 
+    'RAZORPAY_KEY_ID', 
+    'RAZORPAY_KEY_SECRET', 
+    'MONGO_URI', 
+    'FRONTEND_URL',
+    'PHONEPE_MERCHANT_ID',
+    'PHONEPE_SALT_KEY'
+];
 const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
 
 if (missingVars.length > 0) {
-    console.error('\n\n--- FATAL ERROR: Missing Required Environment Variables ---');
+    console.error('\n\n--- ❌ FATAL ERROR: Missing Required Environment Variables ---');
     console.error('The backend server cannot start because the following variables are not defined:');
     missingVars.forEach(varName => console.error(`  - ${varName}`));
-    console.error('\nPlease check your ".env" file (for local development) or your Vercel Project Settings (for deployment).');
-    console.error('See backend/README.md for more details on setting up environment variables.\n\n');
+    console.error('\n➡️  For local development, check your "backend/.env" file.');
+    console.error('➡️  For Vercel deployment, check your Project Settings > Environment Variables.');
+    console.error('See backend/README.md for more details.\n');
     process.exit(1);
 }
 // --- END OF FIX ---

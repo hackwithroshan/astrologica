@@ -148,34 +148,49 @@ exports.verifyPhonepePayment = asyncHandler(async (req, res, next) => {
 
         const paymentData = response.data.data;
         if (response.data.success && paymentData.responseCode === 'SUCCESS') {
-            const notesBuffer = Buffer.from(paymentData.notes, 'base64');
-            const notesString = notesBuffer.toString('utf-8');
-            const notes = JSON.parse(notesString);
-            const { details, type } = notes;
-
-            let finalRecord;
-            if (type === 'booking') {
-                 finalRecord = await Booking.create({
-                    ...details,
-                    id: merchantTransactionId,
-                    userId: req.user.id,
-                    userEmail: req.user.email,
-                });
-            } else if (type === 'subscription') {
-                const deliveryDate = new Date();
-                deliveryDate.setDate(deliveryDate.getDate() + 7);
-                const nextDeliveryDate = deliveryDate.toISOString().split('T')[0];
+            // --- START OF FIX: Add robust parsing for payment notes ---
+            try {
+                const notesBuffer = Buffer.from(paymentData.notes, 'base64');
+                const notesString = notesBuffer.toString('utf-8');
+                const notes = JSON.parse(notesString);
                 
-                finalRecord = await Subscription.create({
-                    ...details,
-                    id: merchantTransactionId,
-                    userId: req.user.id,
-                    nextDeliveryDate
-                });
+                if (!notes || !notes.details || !notes.type) {
+                    throw new Error('Parsed notes object is malformed or missing required fields.');
+                }
+
+                const { details, type } = notes;
+                let finalRecord;
+
+                if (type === 'booking') {
+                     finalRecord = await Booking.create({
+                        ...details,
+                        id: merchantTransactionId,
+                        userId: req.user.id,
+                        userEmail: req.user.email,
+                    });
+                } else if (type === 'subscription') {
+                    const deliveryDate = new Date();
+                    deliveryDate.setDate(deliveryDate.getDate() + 7);
+                    const nextDeliveryDate = deliveryDate.toISOString().split('T')[0];
+                    
+                    finalRecord = await Subscription.create({
+                        ...details,
+                        id: merchantTransactionId,
+                        userId: req.user.id,
+                        nextDeliveryDate
+                    });
+                } else {
+                    throw new Error(`Unknown payment type "${type}" in notes.`);
+                }
+                res.status(200).json({ success: true, message: "Payment successful and recorded.", data: finalRecord });
+
+            } catch (parseError) {
+                console.error("CRITICAL ERROR: PhonePe payment was successful but failed to create a record in the database.");
+                console.error("Transaction ID:", merchantTransactionId);
+                console.error("Parse Error:", parseError.message);
+                return next(new ErrorResponse(`Payment successful, but there was an error recording your transaction. Please contact support with Transaction ID: ${merchantTransactionId}`, 500));
             }
-
-            res.status(200).json({ success: true, message: "Payment successful and recorded.", data: finalRecord });
-
+            // --- END OF FIX ---
         } else {
             res.status(400).json({ success: false, message: response.data.message || "Payment verification failed." });
         }
