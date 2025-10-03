@@ -11,6 +11,7 @@ const User = require('../models/User');
 const Testimonial = require('../models/Testimonial');
 const Service = require('../models/Service');
 const Content = require('../models/Content');
+const Subscription = require('../models/Subscription');
 const QueueAssistancePackage = require('../models/QueueAssistancePackage');
 const QueueAssistanceAddOn = require('../models/QueueAssistanceAddOn');
 
@@ -31,6 +32,7 @@ const importData = async () => {
     await Testimonial.deleteMany();
     await Service.deleteMany();
     await Content.deleteMany();
+    await Subscription.deleteMany();
     await QueueAssistancePackage.deleteMany();
     await QueueAssistanceAddOn.deleteMany();
 
@@ -59,6 +61,7 @@ const deleteData = async () => {
     await Testimonial.deleteMany();
     await Service.deleteMany();
     await Content.deleteMany();
+    await Subscription.deleteMany();
     await QueueAssistancePackage.deleteMany();
     await QueueAssistanceAddOn.deleteMany();
     console.log('Data Destroyed...');

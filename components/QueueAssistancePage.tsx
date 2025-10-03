@@ -253,9 +253,9 @@ const QueueAssistancePage: React.FC<QueueAssistancePageProps> = ({ onBack, onLog
             receiveNotifications: receiveNotifications,
         };
 
-        const bookingDetails: Omit<Booking, 'status' | 'userId'> = {
-            id: '', // This will be replaced by transactionId
-            userEmail: user!.email,
+        // FIX: Refactored to use a common details object that matches the PhonePe payload,
+        // and then augment it for the Razorpay/DB payload. This resolves the TypeScript error.
+        const commonBookingDetails = {
             pujaNameKey: selectedPackage.name, // Use direct name
             templeNameKey: selectedTemple!.nameKey, // Use key for temple
             date,
@@ -283,7 +283,11 @@ const QueueAssistancePage: React.FC<QueueAssistancePageProps> = ({ onBack, onLog
                                 razorpay_payment_id: response.razorpay_payment_id,
                                 razorpay_signature: response.razorpay_signature,
                             });
-                            await createBooking({ ...bookingDetails, id: response.razorpay_payment_id });
+                            await createBooking({ 
+                                ...commonBookingDetails, 
+                                id: response.razorpay_payment_id,
+                                userEmail: user!.email,
+                            });
                             toastContext?.addToast(t('bookingModal.success.title'), 'success');
                             onBack();
                         } catch (error) {
@@ -305,7 +309,7 @@ const QueueAssistancePage: React.FC<QueueAssistancePageProps> = ({ onBack, onLog
         } else if (paymentMethod === 'phonepe') {
             const paymentPayload: PaymentPayload = {
                 amount: totalCost, type: 'booking',
-                details: bookingDetails
+                details: commonBookingDetails
             };
             try {
                 const response = await createPhonepeOrder(paymentPayload);

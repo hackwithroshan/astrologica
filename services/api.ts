@@ -77,7 +77,8 @@ export const updateAppSettings = (settingsData: Partial<AppSettings>) => api.put
 
 // Booking API
 // Fix: Updated type to correctly reflect the booking payload. `id` (transactionId) and `userEmail` are required from the frontend, while `status` and `userId` are handled by the backend.
-export const createBooking = (bookingDetails: Omit<Booking, 'status' | 'userId'>) => api.post('/bookings', bookingDetails);
+// FIX: Add createdAt to Omit to prevent type errors when creating a booking.
+export const createBooking = (bookingDetails: Omit<Booking, 'status' | 'userId' | 'createdAt'>) => api.post('/bookings', bookingDetails);
 export const getUserBookings = (): Promise<{ data: { data: Booking[] } }> => api.get('/bookings/my-bookings');
 export const getAllBookings = (): Promise<{ data: { data: Booking[] } }> => api.get('/bookings/all'); 
 
@@ -91,9 +92,13 @@ export const deleteUser = (id: string) => api.delete(`/users/${id}`);
 
 
 // Subscription API
-type CreateSubscriptionPayload = Omit<PrasadSubscription, 'userId' | 'nextDeliveryDate' | 'status'>;
+// FIX: Add createdAt to Omit to prevent type errors when creating a subscription.
+type CreateSubscriptionPayload = Omit<PrasadSubscription, '_id' | 'userId' | 'nextDeliveryDate' | 'status' | 'createdAt'>;
 export const createSubscription = (subscriptionDetails: CreateSubscriptionPayload) => api.post('/subscriptions', subscriptionDetails);
 export const getSubscriptionsByUserId = (userId: string): Promise<{ data: { data: PrasadSubscription[] } }> => api.get('/subscriptions/my-subscriptions');
+export const getAllSubscriptions = (): Promise<{ data: { data: PrasadSubscription[] } }> => api.get('/subscriptions/all');
+export const cancelSubscription = (id: string): Promise<{ data: { data: PrasadSubscription } }> => api.put(`/subscriptions/${id}/cancel`);
+
 
 // Payment API
 export const createRazorpayOrder = (amount: number): Promise<{ data: { order_id: string; key_id: string; } }> => api.post('/payments/create-order', { amount });

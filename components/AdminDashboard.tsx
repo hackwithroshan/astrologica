@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useContext, useCallback, useMemo } from 'react';
 import {
     LogOut, Settings, Search, Bell, ChevronDown, LayoutDashboard, Building2, Users, BookOpen, CreditCard,
-    BarChart2, FileText, Settings2, PlusCircle, Edit, Trash2, X, Image as ImageIcon, ChevronsUpDown, MoreHorizontal, AlertTriangle, ArrowUp, ArrowDown, Sparkles as SparklesIcon, ClipboardList, Languages, Car, Flower2, Tag
+    BarChart2, FileText, Settings2, PlusCircle, Edit, Trash2, X, Image as ImageIcon, ChevronsUpDown, MoreHorizontal, AlertTriangle, ArrowUp, ArrowDown, Sparkles as SparklesIcon, ClipboardList, Languages, Car, Flower2, Tag, Gift, Calendar, RefreshCw, Info
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-import { User, Temple, Booking, Puja, BookingStatus, PopulatedUser, SeasonalEvent, Testimonial, AppSettings, Service, QueueAssistancePackage, QueueAssistanceAddOn } from '../types';
+import { User, Temple, Booking, Puja, BookingStatus, PopulatedUser, SeasonalEvent, Testimonial, AppSettings, Service, QueueAssistancePackage, QueueAssistanceAddOn, PrasadSubscription, AvailablePrasad } from '../types';
 import { AuthContext } from '../contexts/AuthContext';
 import { LanguageContext } from '../contexts/LanguageContext';
 import { ToastContext } from '../contexts/ToastContext';
@@ -14,14 +14,15 @@ import {
     getSeasonalEvent, updateSeasonalEvent, getTestimonials, addTestimonial, updateTestimonial, deleteTestimonial,
     getAppSettings, updateAppSettings, getServices, addService, updateService, deleteService,
     getQueuePackages, addQueuePackage, updateQueuePackage, deleteQueuePackage,
-    getQueueAddOns, addQueueAddOn, updateQueueAddOn, deleteQueueAddOn
+    getQueueAddOns, addQueueAddOn, updateQueueAddOn, deleteQueueAddOn,
+    getAllSubscriptions, cancelSubscription
 } from '../services/api';
 
 interface AdminDashboardProps {
     onLogout: () => void;
 }
 
-type AdminView = 'dashboard' | 'temples' | 'users' | 'bookings' | 'services' | 'payments' | 'reports' | 'content' | 'settings' | 'queue_assistance';
+type AdminView = 'dashboard' | 'temples' | 'users' | 'bookings' | 'services' | 'payments' | 'reports' | 'content' | 'settings' | 'queue_assistance' | 'prasadSubscriptions';
 
 // --- MAIN COMPONENT ---
 
@@ -53,6 +54,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                 return <SettingsView />;
             case 'queue_assistance':
                 return <QueueAssistanceManagement />;
+            case 'prasadSubscriptions':
+                return <PrasadSubscriptionManagement />;
             default:
                 return <div className="p-8"><h2 className="text-2xl font-bold">{t(`adminDashboard.menu.${view}`)}</h2><p>This section is under construction.</p></div>;
         }
@@ -81,6 +84,7 @@ const Sidebar: React.FC<{ currentView: AdminView, setView: (view: AdminView) => 
         { id: 'temples', icon: Building2, label: t('adminDashboard.menu.temples') },
         { id: 'users', icon: Users, label: t('adminDashboard.menu.users') },
         { id: 'bookings', icon: BookOpen, label: t('adminDashboard.menu.bookings') },
+        { id: 'prasadSubscriptions', icon: Gift, label: t('adminDashboard.menu.prasadSubscriptions') },
         { id: 'queue_assistance', icon: ClipboardList, label: t('adminDashboard.menu.queueAssistance') },
         { id: 'services', icon: SparklesIcon, label: t('adminDashboard.menu.services') },
         { id: 'payments', icon: CreditCard, label: t('adminDashboard.menu.payments') },
@@ -92,7 +96,7 @@ const Sidebar: React.FC<{ currentView: AdminView, setView: (view: AdminView) => 
     return (
         <aside className={`fixed top-0 left-0 h-full bg-maroon text-white w-64 flex flex-col transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
             <div className="flex items-center justify-center h-20 border-b border-saffron/20 px-4">
-                <img src="https://res.cloudinary.com/dvrqft9ov/image/upload/v1759477298/asrologica2_1_gzs09c.png" alt="astrologica logo" className="h-10" />
+                <img src="/public/image/logo white final.png" alt="astrologica logo" className="h-10" />
             </div>
             <nav className="flex-1 py-4">
                 <ul>
@@ -423,14 +427,14 @@ const TempleManagement: React.FC = () => {
 
 const TempleFormModal: React.FC<{ isOpen: boolean; onClose: () => void; onSave: (data: Partial<Temple>) => Promise<void>; temple: Temple | null; mode: 'add' | 'edit' }> = ({ isOpen, onClose, onSave, temple, mode }) => {
     const { t } = useContext(LanguageContext);
-    const [formData, setFormData] = useState<Partial<Temple>>({ faq: [], benefitsKey: [], gallery: [], pujas: [], reviewIds: [] });
+    const [formData, setFormData] = useState<Partial<Temple>>({ faq: [], benefitsKey: [], gallery: [], pujas: [], reviewIds: [], availablePrasads: [] });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         if (temple) {
             setFormData(temple);
         } else {
-            setFormData({ nameKey: '', locationKey: '', deityKey: '', imageUrl: '', descriptionKey: '', famousPujaKey: '', faq: [], benefitsKey: [], gallery: [], pujas: [], reviewIds: [] });
+            setFormData({ nameKey: '', locationKey: '', deityKey: '', imageUrl: '', descriptionKey: '', famousPujaKey: '', faq: [], benefitsKey: [], gallery: [], pujas: [], reviewIds: [], availablePrasads: [] });
         }
     }, [temple, isOpen]);
 
@@ -500,6 +504,36 @@ const TempleFormModal: React.FC<{ isOpen: boolean; onClose: () => void; onSave: 
             const newPujas = [...(formData.pujas || [])];
             newPujas.splice(index, 1);
             setFormData(prev => ({ ...prev, pujas: newPujas }));
+        }
+    };
+    
+    const handlePrasadChange = (index: number, field: keyof AvailablePrasad, value: string | number) => {
+        const newPrasads = [...(formData.availablePrasads || [])];
+        const prasadToUpdate = { ...newPrasads[index] };
+        (prasadToUpdate as any)[field] = value;
+        newPrasads[index] = prasadToUpdate;
+        setFormData(prev => ({ ...prev, availablePrasads: newPrasads }));
+    };
+
+    const addPrasad = () => {
+        const existingPrasads = formData.availablePrasads || [];
+        const newPrasadId = existingPrasads.length > 0 ? Math.max(...existingPrasads.map(p => p.id)) + 1 : 1;
+        const newPrasad: AvailablePrasad = {
+            id: newPrasadId,
+            nameKey: '',
+            descriptionKey: '',
+            imageUrl: '',
+            priceMonthly: 0,
+            priceQuarterly: 0,
+        };
+        setFormData(prev => ({ ...prev, availablePrasads: [...(prev.availablePrasads || []), newPrasad] }));
+    };
+
+    const removePrasad = (index: number) => {
+        if (confirm('Are you sure you want to remove this prasad offering?')) {
+            const newPrasads = [...(formData.availablePrasads || [])];
+            newPrasads.splice(index, 1);
+            setFormData(prev => ({ ...prev, availablePrasads: newPrasads }));
         }
     };
 
@@ -615,6 +649,47 @@ const TempleFormModal: React.FC<{ isOpen: boolean; onClose: () => void; onSave: 
                             <button type="button" onClick={addPuja} className="w-full text-center py-4 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 font-semibold hover:border-saffron hover:text-saffron transition-colors flex items-center justify-center gap-2">
                                 <PlusCircle size={20} />
                                 {t('adminDashboard.temples.buttons.addPuja')}
+                            </button>
+                        </div>
+                    </fieldset>
+
+                    {/* Prasad Section */}
+                    <fieldset>
+                        <legend className="text-xl font-semibold text-gray-800 mb-4">{t('adminDashboard.temples.form.prasadsTitle')}</legend>
+                        <div className="space-y-6">
+                            {(formData.availablePrasads || []).map((prasad, index) => (
+                                <div key={prasad.id} className="bg-white border border-gray-200 rounded-xl p-6 relative group transition-shadow hover:shadow-md">
+                                    <button type="button" onClick={() => removePrasad(index)} className="absolute top-4 right-4 p-1.5 rounded-full bg-gray-100 text-gray-500 hover:bg-red-100 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity" aria-label={`Remove Prasad #${index + 1}`}>
+                                        <Trash2 size={18} />
+                                    </button>
+                                    <h4 className="font-bold text-lg text-maroon mb-4">Prasad Offering #{index + 1}</h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-semibold text-gray-700 mb-1">{t('adminDashboard.temples.form.prasadNameKey')}</label>
+                                            <input type="text" value={prasad.nameKey} onChange={e => handlePrasadChange(index, 'nameKey', e.target.value)} className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-saffron focus:border-saffron" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-semibold text-gray-700 mb-1">{t('adminDashboard.temples.form.prasadImageUrl')}</label>
+                                            <input type="text" value={prasad.imageUrl} onChange={e => handlePrasadChange(index, 'imageUrl', e.target.value)} className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-saffron focus:border-saffron" />
+                                        </div>
+                                        <div className="col-span-full">
+                                            <label className="block text-sm font-semibold text-gray-700 mb-1">{t('adminDashboard.temples.form.prasadDescriptionKey')}</label>
+                                            <textarea value={prasad.descriptionKey} onChange={e => handlePrasadChange(index, 'descriptionKey', e.target.value)} className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-saffron focus:border-saffron" rows={2} />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-semibold text-gray-700 mb-1">{t('adminDashboard.temples.form.priceMonthly')}</label>
+                                            <input type="number" value={prasad.priceMonthly} onChange={e => handlePrasadChange(index, 'priceMonthly', parseFloat(e.target.value) || 0)} className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-saffron focus:border-saffron" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-semibold text-gray-700 mb-1">{t('adminDashboard.temples.form.priceQuarterly')}</label>
+                                            <input type="number" value={prasad.priceQuarterly} onChange={e => handlePrasadChange(index, 'priceQuarterly', parseFloat(e.target.value) || 0)} className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-saffron focus:border-saffron" />
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                            <button type="button" onClick={addPrasad} className="w-full text-center py-4 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 font-semibold hover:border-saffron hover:text-saffron transition-colors flex items-center justify-center gap-2">
+                                <PlusCircle size={20} />
+                                {t('adminDashboard.temples.buttons.addPrasad')}
                             </button>
                         </div>
                     </fieldset>
@@ -1074,6 +1149,211 @@ const BookingManagement: React.FC = () => {
                 </table>
                 }
             </div>
+        </div>
+    );
+};
+
+// --- Prasad Subscription Management ---
+const PrasadSubscriptionManagement: React.FC = () => {
+    const { t, language } = useContext(LanguageContext);
+    const toastContext = useContext(ToastContext);
+
+    const [subscriptions, setSubscriptions] = useState<PrasadSubscription[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState<'Active' | 'Cancelled' | 'all'>('all');
+    const [subToCancel, setSubToCancel] = useState<PrasadSubscription | null>(null);
+    const [selectedSubForDetails, setSelectedSubForDetails] = useState<PrasadSubscription | null>(null);
+    
+    type SortKey = keyof PrasadSubscription | 'user' | 'subscription';
+    const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: 'ascending' | 'descending' } | null>({ key: 'nextDeliveryDate', direction: 'ascending' });
+
+    const fetchSubscriptions = useCallback(async () => {
+        try {
+            setIsLoading(true);
+            const res = await getAllSubscriptions();
+            setSubscriptions(res.data.data);
+        } catch (err) {
+            const errorMessage = getApiErrorMessage(err);
+            setError(errorMessage);
+            toastContext?.addToast(errorMessage, 'error');
+        } finally {
+            setIsLoading(false);
+        }
+    }, [toastContext]);
+
+    useEffect(() => {
+        fetchSubscriptions();
+    }, [fetchSubscriptions]);
+    
+    const handleOpenCancelConfirm = (sub: PrasadSubscription) => {
+        setSubToCancel(sub);
+    };
+
+    const handleCloseConfirm = () => {
+        setSubToCancel(null);
+    };
+
+    const handleConfirmCancel = async () => {
+        if (!subToCancel) return;
+        try {
+            await cancelSubscription(subToCancel.id);
+            toastContext?.addToast(t('adminDashboard.prasadSubscriptions.cancelSuccess'), 'success');
+            fetchSubscriptions(); // Refresh the list
+        } catch (err) {
+            toastContext?.addToast(getApiErrorMessage(err), 'error');
+        } finally {
+            handleCloseConfirm();
+        }
+    };
+    
+    const getUserName = (userId: string | PopulatedUser) => (typeof userId === 'object' && userId !== null ? userId.name : 'N/A');
+    
+    const requestSort = (key: SortKey) => {
+        let direction: 'ascending' | 'descending' = 'ascending';
+        if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
+            direction = 'descending';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const SortableHeader: React.FC<{ sortKey: SortKey; label: string }> = ({ sortKey, label }) => (
+        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" onClick={() => requestSort(sortKey)}>
+            <span className="flex items-center">
+                {label}
+                {sortConfig?.key === sortKey ? (sortConfig.direction === 'ascending' ? <ArrowUp size={14} className="ml-1" /> : <ArrowDown size={14} className="ml-1" />) : <ChevronsUpDown size={14} className="ml-1 opacity-40" />}
+            </span>
+        </th>
+    );
+
+    const processedSubscriptions = useMemo(() => {
+        let filtered = subscriptions
+            .filter(sub => statusFilter === 'all' || sub.status === statusFilter)
+            .filter(sub => {
+                const lowerSearchTerm = searchTerm.toLowerCase();
+                if (!lowerSearchTerm) return true;
+                const user = sub.userId as PopulatedUser;
+                return (
+                    user?.name.toLowerCase().includes(lowerSearchTerm) ||
+                    user?.email.toLowerCase().includes(lowerSearchTerm) ||
+                    t(sub.templeNameKey).toLowerCase().includes(lowerSearchTerm) ||
+                    t(sub.prasadNameKey).toLowerCase().includes(lowerSearchTerm)
+                );
+            });
+            
+        if (sortConfig !== null) {
+            filtered.sort((a, b) => {
+                let aValue: any, bValue: any;
+                switch(sortConfig.key) {
+                    case 'user':
+                        aValue = getUserName(a.userId);
+                        bValue = getUserName(b.userId);
+                        break;
+                    case 'subscription':
+                        aValue = t(a.prasadNameKey);
+                        bValue = t(b.prasadNameKey);
+                        break;
+                    default:
+                        aValue = a[sortConfig.key as keyof PrasadSubscription];
+                        bValue = b[sortConfig.key as keyof PrasadSubscription];
+                }
+                if (aValue < bValue) return sortConfig.direction === 'ascending' ? -1 : 1;
+                if (aValue > bValue) return sortConfig.direction === 'ascending' ? 1 : -1;
+                return 0;
+            });
+        }
+        return filtered;
+    }, [subscriptions, searchTerm, statusFilter, t, sortConfig]);
+    
+    const statusColors: Record<PrasadSubscription['status'], string> = {
+        Active: 'bg-green-100 text-green-800',
+        Cancelled: 'bg-red-100 text-red-800',
+    };
+
+    return (
+        <div>
+            <h1 className="text-3xl font-bold text-gray-800 mb-6">{t('adminDashboard.prasadSubscriptions.title')}</h1>
+            <div className="mb-4 flex items-center gap-4">
+                <div className="relative flex-grow">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                    <input type="text" placeholder={t('adminDashboard.prasadSubscriptions.searchPlaceholder')} value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-saffron" />
+                </div>
+                <div>
+                    <select value={statusFilter} onChange={e => setStatusFilter(e.target.value as any)} className="py-2 px-3 border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-saffron">
+                        <option value="all">{t('adminDashboard.prasadSubscriptions.allStatuses')}</option>
+                        <option value="Active">{t('adminDashboard.prasadSubscriptions.statusActive')}</option>
+                        <option value="Cancelled">{t('adminDashboard.prasadSubscriptions.statusCancelled')}</option>
+                    </select>
+                </div>
+            </div>
+            <div className="bg-white rounded-lg shadow overflow-x-auto">
+                {isLoading ? <div className="p-6 text-center">Loading subscriptions...</div> :
+                error ? <div className="p-6 text-center text-red-500">Error: {error}</div> :
+                <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                        <tr>
+                            <SortableHeader sortKey="user" label={t('adminDashboard.prasadSubscriptions.table.user')} />
+                            <SortableHeader sortKey="subscription" label={t('adminDashboard.prasadSubscriptions.table.subscription')} />
+                            <SortableHeader sortKey="price" label={t('adminDashboard.bookings.amount')} />
+                            <SortableHeader sortKey="nextDeliveryDate" label={t('adminDashboard.prasadSubscriptions.table.nextDelivery')} />
+                            <SortableHeader sortKey="status" label={t('adminDashboard.prasadSubscriptions.table.status')} />
+                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">{t('adminDashboard.prasadSubscriptions.table.actions')}</th>
+                        </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                        {processedSubscriptions.map(sub => {
+                            const user = sub.userId as PopulatedUser;
+                            return (
+                                <tr key={sub.id}>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <div className="text-sm font-medium text-gray-900">{user?.name}</div>
+                                        <div className="text-sm text-gray-500">{user?.email}</div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <div className="text-sm text-gray-900">{t(sub.prasadNameKey)}</div>
+                                        <div className="text-sm text-gray-500">{t(sub.templeNameKey)}</div>
+                                    </td>
+                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                        <div className="font-semibold">₹{sub.price.toLocaleString('en-IN')}</div>
+                                        <div>{sub.frequency}</div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{new Date(sub.nextDeliveryDate + 'T00:00:00').toLocaleDateString(language, { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm"><span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors[sub.status]}`}>{sub.status}</span></td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <div className="flex items-center justify-end gap-3">
+                                            <button onClick={() => setSelectedSubForDetails(sub)} className="text-blue-600 hover:text-blue-900" title="View Details"><Info size={18} /></button>
+                                            {sub.status === 'Active' && (
+                                                <button onClick={() => handleOpenCancelConfirm(sub)} className="text-red-600 hover:text-red-900" title="Cancel Subscription"><X size={20} /></button>
+                                            )}
+                                        </div>
+                                    </td>
+                                </tr>
+                            )
+                        })}
+                    </tbody>
+                </table>
+                }
+            </div>
+             {subToCancel && (
+                <ConfirmationModal
+                    isOpen={!!subToCancel}
+                    onClose={handleCloseConfirm}
+                    onConfirm={handleConfirmCancel}
+                    title={t('adminDashboard.prasadSubscriptions.confirmCancel')}
+                    message={t('adminDashboard.prasadSubscriptions.confirmCancelMessage', { 
+                        prasadName: t(subToCancel.prasadNameKey), 
+                        userName: getUserName(subToCancel.userId) 
+                    })}
+                />
+            )}
+            {selectedSubForDetails && (
+                <SubscriptionDetailsModal
+                    isOpen={!!selectedSubForDetails}
+                    onClose={() => setSelectedSubForDetails(null)}
+                    subscription={selectedSubForDetails}
+                />
+            )}
         </div>
     );
 };
@@ -2302,5 +2582,70 @@ const ServiceFormModal: React.FC<{ isOpen: boolean; onClose: () => void; onSave:
     );
 };
 
+
+const SubscriptionDetailsModal: React.FC<{ isOpen: boolean; onClose: () => void; subscription: PrasadSubscription | null }> = ({ isOpen, onClose, subscription }) => {
+    const { t, language } = useContext(LanguageContext);
+    if (!isOpen || !subscription) return null;
+
+    const user = subscription.userId as PopulatedUser;
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4" onClick={onClose}>
+            <div className="bg-white rounded-lg shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+                <div className="flex justify-between items-center p-4 border-b">
+                    <h2 className="text-xl font-bold text-maroon">{t('adminDashboard.prasadSubscriptions.detailsTitle')}</h2>
+                    <button onClick={onClose}><X size={24} /></button>
+                </div>
+                <div className="p-6 space-y-4 overflow-y-auto">
+                    {/* Subscription Info */}
+                    <div>
+                        <h3 className="font-bold text-gray-800 mb-2">{t('adminDashboard.prasadSubscriptions.table.subscription')}</h3>
+                        <p className="font-semibold text-lg text-maroon">{t(subscription.prasadNameKey)}</p>
+                        <p className="text-sm text-gray-600">{t(subscription.templeNameKey)}</p>
+                    </div>
+
+                    {/* User Info */}
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                        <h3 className="font-bold text-gray-800 mb-2">{t('dashboard.details.devoteeInfo')}</h3>
+                        <p><span className="font-semibold">{t('adminDashboard.users.table.name')}:</span> {user.name}</p>
+                        <p><span className="font-semibold">{t('adminDashboard.users.table.email')}:</span> {user.email}</p>
+                        <p><span className="font-semibold">{t('dashboard.profile.phone')}:</span> {subscription.phoneNumber}</p>
+                    </div>
+
+                    {/* Delivery Info */}
+                    <div className="bg-orange-50 p-4 rounded-lg">
+                        <h3 className="font-bold text-maroon mb-2">{t('adminDashboard.prasadSubscriptions.deliveryAddress')}</h3>
+                        <p className="whitespace-pre-wrap">{subscription.address}</p>
+                    </div>
+
+                    {/* Details Table */}
+                    <div className="space-y-2 text-sm">
+                        <div className="flex justify-between items-center"><span className="text-gray-600">{t('adminDashboard.prasadSubscriptions.table.status')}:</span> <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${subscription.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{subscription.status}</span></div>
+                        <div className="flex justify-between items-center"><span className="text-gray-600">{t('dashboard.subscriptions.frequency')}:</span> <span className="font-semibold">{subscription.frequency}</span></div>
+                        <div className="flex justify-between items-center"><span className="text-gray-600">{t('adminDashboard.bookings.amount')}:</span> <span className="font-semibold">₹{subscription.price.toLocaleString('en-IN')}</span></div>
+                        <div className="flex justify-between items-center"><span className="text-gray-600">{t('adminDashboard.prasadSubscriptions.table.nextDelivery')}:</span> <span className="font-semibold">{new Date(subscription.nextDeliveryDate + 'T00:00:00').toLocaleDateString(language, { year: 'numeric', month: 'long', day: 'numeric' })}</span></div>
+                        <div className="flex justify-between items-center"><span className="text-gray-600">{t('adminDashboard.prasadSubscriptions.subscribedOn')}:</span> <span className="font-semibold">{new Date(subscription.createdAt).toLocaleDateString(language, { year: 'numeric', month: 'long', day: 'numeric' })}</span></div>
+                    </div>
+                    
+                    {/* IDs */}
+                    <div className="pt-4 border-t space-y-3">
+                        <div>
+                            <p className="font-semibold text-gray-600 mb-1 text-sm">{t('adminDashboard.prasadSubscriptions.subscriptionId')}:</p>
+                            <p className="font-mono bg-gray-100 text-gray-800 p-2 rounded text-xs break-words">{subscription._id}</p>
+                        </div>
+                        <div>
+                            <p className="font-semibold text-gray-600 mb-1 text-sm">{t('adminDashboard.prasadSubscriptions.paymentTransactionId')}:</p>
+                            <p className="font-mono bg-gray-100 text-gray-800 p-2 rounded text-xs break-words">{subscription.id}</p>
+                        </div>
+                    </div>
+
+                </div>
+                <div className="flex justify-end p-4 border-t bg-gray-50">
+                    <button onClick={onClose} type="button" className="py-2 px-4 rounded bg-gray-200 hover:bg-gray-300">Close</button>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 export default AdminDashboard;

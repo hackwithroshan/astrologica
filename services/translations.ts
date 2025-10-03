@@ -267,6 +267,7 @@ export const translations = {
             content: 'Content & CMS',
             settings: 'Settings',
             queueAssistance: 'Queue Assistance',
+            prasadSubscriptions: 'Prasad Subscriptions',
         },
         profile: {
             settings: 'Settings',
@@ -285,6 +286,29 @@ export const translations = {
             allStatuses: 'All Statuses',
             statusCancelled: 'Cancelled',
             searchPlaceholder: 'Search by ID, user, or temple...'
+        },
+        prasadSubscriptions: {
+          title: 'Prasad Subscriptions Management',
+          searchPlaceholder: 'Search by user, temple, or prasad...',
+          allStatuses: 'All Statuses',
+          statusActive: 'Active',
+          statusCancelled: 'Cancelled',
+          confirmCancel: 'Confirm Subscription Cancellation',
+          confirmCancelMessage: "Are you sure you want to cancel the '{{prasadName}}' subscription for {{userName}}?",
+          cancelSuccess: 'Subscription cancelled successfully.',
+          detailsTitle: 'Subscription Details',
+          deliveryAddress: 'Delivery Address',
+          subscriptionId: 'Subscription ID',
+          paymentTransactionId: 'Payment Transaction ID (PRN)',
+          subscribedOn: 'Subscribed On',
+          table: {
+            user: 'User',
+            subscription: 'Subscription',
+            details: 'Details',
+            nextDelivery: 'Next Delivery',
+            status: 'Status',
+            actions: 'Actions',
+          }
         },
         queueAssistance: {
             title: 'Queue Assistance Bookings',
@@ -392,6 +416,12 @@ export const translations = {
                 ePujaDetailsKey: 'E-Puja Details Key',
                 virtualTourLink: 'Virtual Tour Link (Embed URL)',
                 requirementsKey: 'Puja Requirements Key',
+                prasadsTitle: 'Available Prasad for Subscription',
+                prasadNameKey: 'Prasad Name Key',
+                prasadDescriptionKey: 'Prasad Description Key',
+                prasadImageUrl: 'Prasad Image URL',
+                priceMonthly: 'Monthly Price (INR)',
+                priceQuarterly: 'Quarterly Price (INR)',
             },
             buttons: {
                 edit: 'Edit',
@@ -401,6 +431,7 @@ export const translations = {
                 addFaq: 'Add FAQ',
                 addBenefit: 'Add Benefit',
                 addPuja: 'Add Puja',
+                addPrasad: 'Add Prasad',
             }
         },
         users: {
@@ -1009,6 +1040,7 @@ export const translations = {
       },
       menu: {
         queueAssistance: 'कतार सहायता',
+        prasadSubscriptions: 'प्रसाद सदस्यता',
       },
       bookings: {
         title: 'सभी उपयोगकर्ता बुकिंग',
@@ -1023,6 +1055,29 @@ export const translations = {
         allStatuses: 'सभी स्थितियाँ',
         statusCancelled: 'रद्द',
         searchPlaceholder: 'आईडी, उपयोगकर्ता, या मंदिर से खोजें...'
+      },
+      prasadSubscriptions: {
+        title: 'प्रसाद सदस्यता प्रबंधन',
+        searchPlaceholder: 'उपयोगकर्ता, मंदिर, या प्रसाद द्वारा खोजें...',
+        allStatuses: 'सभी स्थितियाँ',
+        statusActive: 'सक्रिय',
+        statusCancelled: 'रद्द',
+        confirmCancel: 'सदस्यता रद्द करने की पुष्टि करें',
+        confirmCancelMessage: 'क्या आप वाकई उपयोगकर्ता {{userName}} के लिए \'{{prasadName}}\' सदस्यता रद्द करना चाहते हैं?',
+        cancelSuccess: 'सदस्यता सफलतापूर्वक रद्द कर दी गई है।',
+        detailsTitle: 'सदस्यता विवरण',
+        deliveryAddress: 'वितरण पता',
+        subscriptionId: 'सदस्यता आईडी',
+        paymentTransactionId: 'भुगतान लेनदेन आईडी (PRN)',
+        subscribedOn: 'सदस्यता लेने की तिथि',
+        table: {
+          user: 'उपयोगकर्ता',
+          subscription: 'सदस्यता',
+          details: 'विवरण',
+          nextDelivery: 'अगली डिलीवरी',
+          status: 'स्थिति',
+          actions: 'कार्रवाई',
+        }
       },
       queueAssistance: {
         title: 'कतार सहायता बुकिंग',
@@ -1130,6 +1185,12 @@ export const translations = {
             ePujaDetailsKey: 'ई-पूजा विवरण कुंजी',
             virtualTourLink: 'वर्चुअल टूर लिंक (एम्बेड URL)',
             requirementsKey: 'पूजा आवश्यकताएँ कुंजी',
+            prasadsTitle: 'सदस्यता के लिए उपलब्ध प्रसाद',
+            prasadNameKey: 'प्रसाद नाम कुंजी',
+            prasadDescriptionKey: 'प्रसाद विवरण कुंजी',
+            prasadImageUrl: 'प्रसाद छवि यूआरएल',
+            priceMonthly: 'मासिक मूल्य (INR)',
+            priceQuarterly: 'त्रैमासिक मूल्य (INR)',
         },
         buttons: {
             edit: 'संपादित करें',
@@ -1139,6 +1200,7 @@ export const translations = {
             addFaq: 'FAQ जोड़ें',
             addBenefit: 'लाभ जोड़ें',
             addPuja: 'पूजा जोड़ें',
+            addPrasad: 'प्रसाद जोड़ें',
         }
       },
       settings: {

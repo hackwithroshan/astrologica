@@ -1,6 +1,7 @@
 
 const Subscription = require('../models/Subscription');
 const asyncHandler = require('../middleware/async');
+const ErrorResponse = require('../utils/errorResponse');
 
 // @desc      Create new subscription
 // @route     POST /api/subscriptions
@@ -45,4 +46,26 @@ exports.getUserSubscriptions = asyncHandler(async (req, res, next) => {
     count: subscriptions.length,
     data: subscriptions,
   });
+});
+
+// @desc      Get all subscriptions (Admin)
+// @route     GET /api/subscriptions/all
+// @access    Private/Admin
+exports.getAllSubscriptions = asyncHandler(async (req, res, next) => {
+  const subscriptions = await Subscription.find().populate('userId', 'name email').sort({ createdAt: -1 });
+  res.status(200).json({ success: true, count: subscriptions.length, data: subscriptions });
+});
+
+// @desc      Cancel a subscription (Admin)
+// @route     PUT /api/subscriptions/:id/cancel
+// @access    Private/Admin
+exports.cancelSubscription = asyncHandler(async (req, res, next) => {
+  // Use the main `id` field which is the transactionId, not the mongo `_id`
+  const subscription = await Subscription.findOne({ id: req.params.id });
+  if (!subscription) {
+    return next(new ErrorResponse(`Subscription not found with id of ${req.params.id}`, 404));
+  }
+  subscription.status = 'Cancelled';
+  await subscription.save();
+  res.status(200).json({ success: true, data: subscription });
 });

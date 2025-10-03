@@ -99,11 +99,14 @@ export interface Booking {
     poojaItems?: boolean;
     receiveNotifications?: boolean;
   };
+  // FIX: Add createdAt property to match backend model
+  createdAt: string;
 }
 
 export interface PrasadSubscription {
-  id: string; // razorpay_payment_id
-  userId: string;
+  _id: string;
+  id: string; // transactionId
+  userId: string | PopulatedUser;
   templeNameKey: string;
   prasadNameKey: string;
   frequency: 'Monthly' | 'Quarterly';
@@ -113,6 +116,8 @@ export interface PrasadSubscription {
   fullName: string;
   phoneNumber: string;
   address: string;
+  // FIX: Add createdAt property to match backend model and fix type error
+  createdAt: string;
 }
 
 export interface TourPackage {
@@ -167,7 +172,8 @@ export interface QueueAssistanceAddOn {
 
 
 // For PhonePe Payment
-export type PaymentDetails = Omit<Booking, 'status' | 'userId' | 'userEmail' | 'id'> | Omit<PrasadSubscription, 'userId' | 'nextDeliveryDate' | 'status' | 'id'>;
+// FIX: Add createdAt to Omit to prevent type errors when creating payment payloads.
+export type PaymentDetails = Omit<Booking, 'status' | 'userId' | 'userEmail' | 'id' | 'createdAt'> | Omit<PrasadSubscription, '_id' | 'userId' | 'nextDeliveryDate' | 'status' | 'id' | 'createdAt'>;
 
 export interface PaymentPayload {
     amount: number;

@@ -228,7 +228,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ onLogout }) => {
             };
             fetchData();
         }
-    }, []);
+    }, [user]);
 
     const today = new Date().toISOString().split('T')[0];
     const upcomingBookings = bookings.filter(b => b.date >= today).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
