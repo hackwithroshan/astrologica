@@ -1,0 +1,24 @@
+{
+  "name": "astrologica-frontend",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "npx concurrently --kill-others-on-fail --names \"FRONTEND,BACKEND\" -c \"bgBlue.bold,bgMagenta.bold\" \"npm:dev\" \"npm:dev:backend\"",
+    "dev": "esbuild index.tsx --bundle --outfile=index.js --servedir=. --serve=:3000",
+    "dev:backend": "npm run dev --prefix backend",
+    "build": "node build.js",
+    "vercel-build": "npm run build"
+  },
+  "dependencies": {
+    "axios": "^1.7.2",
+    "esbuild": "latest",
+    "fs-extra": "^11.2.0",
+    "lucide-react": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "recharts": "latest"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "concurrently": "^8.2.2"
+  }
+}
