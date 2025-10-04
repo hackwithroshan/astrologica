@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-import { User, Temple, Booking, Puja, BookingStatus, PopulatedUser, SeasonalEvent, Testimonial, AppSettings, Service, QueueAssistancePackage, QueueAssistanceAddOn, PrasadSubscription, AvailablePrasad, TourPackage } from '../types';
+import { User, Temple, Booking, Puja, BookingStatus, PopulatedUser, SeasonalEvent, Testimonial, AppSettings, Service, QueueAssistancePackage, QueueAssistanceAddOn, PrasadSubscription, AvailablePrasad, TourPackage, ItineraryDay } from '../types';
 import { AuthContext } from '../contexts/AuthContext';
 import { LanguageContext } from '../contexts/LanguageContext';
 import { ToastContext } from '../contexts/ToastContext';
@@ -100,7 +100,7 @@ const Sidebar: React.FC<{ currentView: AdminView, setView: (view: AdminView) => 
     return (
         <aside className={`fixed top-0 left-0 h-full bg-maroon text-white w-64 flex flex-col transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
             <div className="flex items-center justify-center h-20 border-b border-saffron/20 px-4">
-                <img src="https://res.cloudinary.com/dvrqft9ov/image/upload/v1759477298/asrologica2_1_gzs09c.png" alt="astrologica logo" className="h-10" />
+                <img src="/public/image/logo white final.png" alt="astrologica logo" className="h-10" />
             </div>
             <nav className="flex-1 py-4">
                 <ul>
@@ -1365,61 +1365,144 @@ const PrasadSubscriptionManagement: React.FC = () => {
 // --- Tour Management ---
 const TourFormModal: React.FC<{ isOpen: boolean; onClose: () => void; onSave: (data: Partial<TourPackage>) => Promise<void>; tour: Partial<TourPackage> | null; mode: 'add' | 'edit' }> = ({ isOpen, onClose, onSave, tour, mode }) => {
     const { t } = useContext(LanguageContext);
-    const [formData, setFormData] = useState<Partial<TourPackage>>({});
+    const [formData, setFormData] = useState<Partial<TourPackage>>({ gallery: [], itinerary: [], inclusions: [], exclusions: [] });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
-        setFormData(tour || { nameKey: '', descriptionKey: '', imageUrl: '', price: 0, durationKey: '' });
+        setFormData(tour || { nameKey: '', descriptionKey: '', imageUrl: '', price: 0, durationKey: '', gallery: [], itinerary: [], inclusions: [], exclusions: [], bestTimeToVisitKey: '', locationKey: '', deityKey: '' });
     }, [tour, isOpen]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value, type } = e.target;
         setFormData(prev => ({ ...prev, [name]: type === 'number' ? parseFloat(value) || 0 : value }));
+    };
+
+    const handleDynamicListChange = (listName: 'gallery' | 'inclusions' | 'exclusions', index: number, value: string) => {
+        const newList = [...(formData[listName] || [])];
+        newList[index] = value;
+        setFormData(prev => ({ ...prev, [listName]: newList }));
+    };
+
+    const addToList = (listName: 'gallery' | 'inclusions' | 'exclusions') => {
+        const newList = [...(formData[listName] || []), ''];
+        setFormData(prev => ({ ...prev, [listName]: newList }));
+    };
+
+    const removeFromList = (listName: 'gallery' | 'inclusions' | 'exclusions', index: number) => {
+        const newList = [...(formData[listName] || [])];
+        newList.splice(index, 1);
+        setFormData(prev => ({ ...prev, [listName]: newList }));
+    };
+
+    const handleItineraryChange = (index: number, field: keyof ItineraryDay, value: string | number) => {
+        const newItinerary = [...(formData.itinerary || [])];
+        (newItinerary[index] as any)[field] = value;
+        setFormData(prev => ({...prev, itinerary: newItinerary}));
+    };
+    
+    const addItineraryDay = () => {
+        const newDay: ItineraryDay = { day: (formData.itinerary?.length || 0) + 1, titleKey: '', descriptionKey: '' };
+        setFormData(prev => ({...prev, itinerary: [...(prev.itinerary || []), newDay]}));
+    };
+
+    const removeItineraryDay = (index: number) => {
+        const newItinerary = [...(formData.itinerary || [])];
+        newItinerary.splice(index, 1);
+        // Re-number days
+        newItinerary.forEach((item, i) => item.day = i + 1);
+        setFormData(prev => ({...prev, itinerary: newItinerary}));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
-        await onSave(formData);
+
+        // Create a deep copy to filter out empty entries before submission
+        const cleanedData = JSON.parse(JSON.stringify(formData));
+
+        // Filter out incomplete itinerary days and re-number them
+        if (cleanedData.itinerary) {
+            cleanedData.itinerary = cleanedData.itinerary
+                .filter((day: ItineraryDay) => day.titleKey.trim() !== '' && day.descriptionKey.trim() !== '')
+                .map((day: ItineraryDay, index: number) => ({ ...day, day: index + 1 }));
+        }
+        
+        // Filter out empty gallery images, inclusions, and exclusions
+        if (cleanedData.gallery) {
+            cleanedData.gallery = cleanedData.gallery.filter((url: string) => url.trim() !== '');
+        }
+        if (cleanedData.inclusions) {
+            cleanedData.inclusions = cleanedData.inclusions.filter((item: string) => item.trim() !== '');
+        }
+        if (cleanedData.exclusions) {
+            cleanedData.exclusions = cleanedData.exclusions.filter((item: string) => item.trim() !== '');
+        }
+
+        await onSave(cleanedData);
         setIsSubmitting(false);
     };
 
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-lg shadow-2xl w-full max-w-lg" onClick={e => e.stopPropagation()}>
-                <div className="flex justify-between items-center p-4 border-b">
-                    <h2 className="text-xl font-bold text-maroon">{mode === 'edit' ? t('adminDashboard.tours.editTour') : t('adminDashboard.tours.addNew')}</h2>
-                    <button onClick={onClose}><X size={24} /></button>
+        <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4 animate-fade-in" style={{animationDuration: '0.2s'}}>
+            <div className="bg-gray-50 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] flex flex-col" onClick={e => e.stopPropagation()}>
+                <div className="flex justify-between items-center p-6 border-b border-gray-200">
+                    <h2 className="text-2xl font-bold text-maroon">{mode === 'edit' ? t('adminDashboard.tours.editTour') : t('adminDashboard.tours.addNew')}</h2>
+                    <button onClick={onClose} className="p-1 rounded-full text-gray-500 hover:bg-gray-200 hover:text-gray-800 transition-colors"><X size={24} /></button>
                 </div>
-                <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium">{t('adminDashboard.tours.form.nameKey')}</label>
-                        <input type="text" name="nameKey" value={formData.nameKey || ''} onChange={handleChange} className="w-full p-2 border rounded" required />
-                    </div>
-                     <div>
-                        <label className="block text-sm font-medium">{t('adminDashboard.tours.form.descriptionKey')}</label>
-                        <input type="text" name="descriptionKey" value={formData.descriptionKey || ''} onChange={handleChange} className="w-full p-2 border rounded" required />
-                    </div>
-                     <div>
-                        <label className="block text-sm font-medium">{t('adminDashboard.tours.form.imageUrl')}</label>
-                        <input type="text" name="imageUrl" value={formData.imageUrl || ''} onChange={handleChange} className="w-full p-2 border rounded" required />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium">{t('adminDashboard.tours.form.price')}</label>
-                            <input type="number" name="price" value={formData.price || 0} onChange={handleChange} className="w-full p-2 border rounded" required />
+                 <form onSubmit={handleSubmit} className="p-8 space-y-8 overflow-y-auto">
+                    {/* Basic Info */}
+                     <fieldset className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <legend className="text-xl font-semibold text-gray-800 mb-4 col-span-full">Basic Tour Information</legend>
+                        <div><label className="block text-sm font-semibold text-gray-700 mb-1">Name Key</label><input type="text" name="nameKey" value={formData.nameKey || ''} onChange={handleChange} className="w-full p-2 border rounded-lg" required /></div>
+                        <div><label className="block text-sm font-semibold text-gray-700 mb-1">Duration Key</label><input type="text" name="durationKey" value={formData.durationKey || ''} onChange={handleChange} className="w-full p-2 border rounded-lg" required /></div>
+                        <div><label className="block text-sm font-semibold text-gray-700 mb-1">Destinations Covered Key</label><input type="text" name="locationKey" value={formData.locationKey || ''} onChange={handleChange} className="w-full p-2 border rounded-lg" required /></div>
+                        <div><label className="block text-sm font-semibold text-gray-700 mb-1">Main Deity Key</label><input type="text" name="deityKey" value={formData.deityKey || ''} onChange={handleChange} className="w-full p-2 border rounded-lg" required /></div>
+                        <div><label className="block text-sm font-semibold text-gray-700 mb-1">Main Image URL</label><input type="text" name="imageUrl" value={formData.imageUrl || ''} onChange={handleChange} className="w-full p-2 border rounded-lg" required /></div>
+                        <div><label className="block text-sm font-semibold text-gray-700 mb-1">Price (INR)</label><input type="number" name="price" value={formData.price || 0} onChange={handleChange} className="w-full p-2 border rounded-lg" required /></div>
+                        <div className="col-span-full"><label className="block text-sm font-semibold text-gray-700 mb-1">Best Time to Visit Key</label><input type="text" name="bestTimeToVisitKey" value={formData.bestTimeToVisitKey || ''} onChange={handleChange} className="w-full p-2 border rounded-lg" /></div>
+                        <div className="col-span-full"><label className="block text-sm font-semibold text-gray-700 mb-1">Description Key</label><textarea name="descriptionKey" value={formData.descriptionKey || ''} onChange={handleChange} className="w-full p-2 border rounded-lg" rows={3} required /></div>
+                    </fieldset>
+
+                    {/* Itinerary */}
+                    <fieldset>
+                        <legend className="text-xl font-semibold text-gray-800 mb-4">Day-wise Itinerary</legend>
+                         <div className="space-y-4">
+                            {(formData.itinerary || []).map((item, index) => (
+                                <div key={index} className="bg-white border rounded-lg p-4 relative">
+                                    <h4 className="font-bold text-maroon mb-2">Day {item.day}</h4>
+                                    <button type="button" onClick={() => removeItineraryDay(index)} className="absolute top-3 right-3 p-1 text-gray-400 hover:text-red-600"><Trash2 size={16}/></button>
+                                    <div className="grid grid-cols-1 gap-4">
+                                        <div><label className="text-xs font-semibold">Title Key</label><input type="text" value={item.titleKey} onChange={e => handleItineraryChange(index, 'titleKey', e.target.value)} className="w-full p-2 border rounded-md text-sm"/></div>
+                                        <div><label className="text-xs font-semibold">Description Key</label><textarea value={item.descriptionKey} onChange={e => handleItineraryChange(index, 'descriptionKey', e.target.value)} className="w-full p-2 border rounded-md text-sm" rows={2}/></div>
+                                    </div>
+                                </div>
+                            ))}
+                            <button type="button" onClick={addItineraryDay} className="mt-2 flex items-center gap-2 bg-saffron/10 text-saffron-dark font-semibold py-2 px-4 rounded-lg hover:bg-saffron/20 transition-colors text-sm"><PlusCircle size={18} /> Add Day</button>
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium">{t('adminDashboard.tours.form.durationKey')}</label>
-                            <input type="text" name="durationKey" value={formData.durationKey || ''} onChange={handleChange} className="w-full p-2 border rounded" required />
+                    </fieldset>
+                    
+                     {/* Inclusions & Exclusions */}
+                    <fieldset className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <DynamicListEditor title="Inclusions" list={formData.inclusions || []} onUpdate={(val, i) => handleDynamicListChange('inclusions', i, val)} onAdd={() => addToList('inclusions')} onRemove={i => removeFromList('inclusions', i)} />
+                        <DynamicListEditor title="Exclusions" list={formData.exclusions || []} onUpdate={(val, i) => handleDynamicListChange('exclusions', i, val)} onAdd={() => addToList('exclusions')} onRemove={i => removeFromList('exclusions', i)} />
+                    </fieldset>
+
+                     {/* Details & Gallery */}
+                     <fieldset className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                             <div><label className="block text-sm font-semibold text-gray-700 mb-1">Accommodation Details Key</label><textarea name="accommodationKey" value={formData.accommodationKey || ''} onChange={handleChange} className="w-full p-2 border rounded-lg" rows={2} /></div>
+                             <div><label className="block text-sm font-semibold text-gray-700 mb-1">Transport Details Key</label><textarea name="transportKey" value={formData.transportKey || ''} onChange={handleChange} className="w-full p-2 border rounded-lg" rows={2} /></div>
+                             <div><label className="block text-sm font-semibold text-gray-700 mb-1">Meals Details Key</label><textarea name="mealsKey" value={formData.mealsKey || ''} onChange={handleChange} className="w-full p-2 border rounded-lg" rows={2} /></div>
+                             <div><label className="block text-sm font-semibold text-gray-700 mb-1">Cancellation Policy Key</label><textarea name="cancellationPolicyKey" value={formData.cancellationPolicyKey || ''} onChange={handleChange} className="w-full p-2 border rounded-lg" rows={2} /></div>
                         </div>
-                    </div>
+                        <DynamicListEditor title="Gallery Image URLs" list={formData.gallery || []} onUpdate={(val, i) => handleDynamicListChange('gallery', i, val)} onAdd={() => addToList('gallery')} onRemove={i => removeFromList('gallery', i)} />
+                    </fieldset>
                 </form>
-                 <div className="flex justify-end p-4 border-t bg-gray-50">
-                    <button onClick={onClose} type="button" className="mr-2 py-2 px-4 rounded bg-gray-200 hover:bg-gray-300">{t('adminDashboard.temples.buttons.cancel')}</button>
-                    <button onClick={handleSubmit} type="submit" disabled={isSubmitting} className="py-2 px-4 rounded bg-saffron text-white hover:bg-orange-500 disabled:bg-gray-400">
+                 <div className="flex justify-end p-6 border-t border-gray-200 bg-white/50 sticky bottom-0">
+                    <button onClick={onClose} type="button" className="mr-3 py-2.5 px-6 rounded-lg bg-gray-200 text-gray-800 font-semibold hover:bg-gray-300">{t('adminDashboard.temples.buttons.cancel')}</button>
+                    <button onClick={handleSubmit} type="submit" disabled={isSubmitting} className="py-2.5 px-6 rounded-lg bg-saffron text-white font-bold hover:bg-orange-500 disabled:bg-gray-400">
                         {isSubmitting ? 'Saving...' : t('adminDashboard.temples.buttons.save')}
                     </button>
                 </div>
@@ -1427,6 +1510,23 @@ const TourFormModal: React.FC<{ isOpen: boolean; onClose: () => void; onSave: (d
         </div>
     );
 };
+
+// Helper for dynamic lists in forms
+const DynamicListEditor: React.FC<{title: string; list: string[]; onUpdate: (value: string, index: number) => void; onAdd: () => void; onRemove: (index: number) => void;}> = ({ title, list, onUpdate, onAdd, onRemove }) => (
+    <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">{title}</label>
+        <div className="p-4 bg-white border border-gray-200 rounded-lg space-y-3">
+            {list.map((item, index) => (
+                <div key={index} className="flex items-center gap-2">
+                    <input type="text" value={item} onChange={e => onUpdate(e.target.value, index)} className="w-full p-2 border rounded-md text-sm" placeholder="Enter value..."/>
+                    <button type="button" onClick={() => onRemove(index)} className="p-2 text-gray-400 hover:text-red-600"><Trash2 size={16}/></button>
+                </div>
+            ))}
+            <button type="button" onClick={onAdd} className="mt-2 text-sm text-saffron font-semibold hover:underline">Add Item</button>
+        </div>
+    </div>
+);
+
 
 const TourManagement: React.FC = () => {
     const { t } = useContext(LanguageContext);
@@ -1661,6 +1761,13 @@ const QueueBookingsView: React.FC = () => {
     const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: 'ascending' | 'descending' } | null>({ key: 'date', direction: 'descending' });
     const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
+    // FIX: Moved packages state and effect before its usage in useMemo.
+    // Fetch packages to resolve names correctly
+    const [packages, setPackages] = useState<QueueAssistancePackage[]>([]);
+    useEffect(() => {
+        getQueuePackages().then(res => setPackages(res.data.data)).catch(console.error);
+    }, []);
+
     const fetchBookings = useCallback(async () => {
         try {
             setIsLoading(true);
@@ -1711,7 +1818,8 @@ const QueueBookingsView: React.FC = () => {
             });
         }
         return filtered;
-    }, [allBookings, searchTerm, statusFilter, sortConfig, t]);
+// FIX: Added missing 'packages' dependency to the useMemo hook.
+    }, [allBookings, searchTerm, statusFilter, sortConfig, t, packages]);
 
     const requestSort = (key: SortKey) => {
         let direction: 'ascending' | 'descending' = 'ascending';
@@ -1728,11 +1836,6 @@ const QueueBookingsView: React.FC = () => {
         </th>
     );
     
-    // Fetch packages to resolve names correctly
-    const [packages, setPackages] = useState<QueueAssistancePackage[]>([]);
-    useEffect(() => {
-        getQueuePackages().then(res => setPackages(res.data.data)).catch(console.error);
-    }, []);
 
     const statusColors: Record<BookingStatus, string> = { Confirmed: 'bg-green-100 text-green-800', Completed: 'bg-blue-100 text-blue-800', Cancelled: 'bg-red-100 text-red-800' };
 

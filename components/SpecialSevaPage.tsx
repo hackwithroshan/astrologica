@@ -54,6 +54,24 @@ const SpecialSevaCard: React.FC<SpecialSevaCardProps> = ({ seva }) => {
     );
 };
 
+const SpecialSevaCardSkeleton: React.FC = () => (
+    <div className="bg-white rounded-xl shadow-lg overflow-hidden flex flex-col md:flex-row animate-pulse">
+        <div className="w-full md:w-1/3 h-64 md:h-auto bg-gray-200"></div>
+        <div className="p-6 flex flex-col flex-grow w-full">
+            <div className="h-8 w-3/4 bg-gray-200 rounded mb-2"></div>
+            <div className="h-4 w-1/3 bg-gray-200 rounded mb-4"></div>
+            <div className="h-4 w-full bg-gray-200 rounded mb-2"></div>
+            <div className="h-4 w-5/6 bg-gray-200 rounded mb-6"></div>
+            <div className="h-24 bg-gray-200 rounded-lg mt-auto mb-6"></div>
+            <div className="flex justify-between items-center">
+                <div className="h-8 w-1/4 bg-gray-200 rounded"></div>
+                <div className="h-10 w-1/3 bg-gray-200 rounded-full"></div>
+            </div>
+        </div>
+    </div>
+);
+
+
 interface SpecialSevaPageProps {
     onBack: () => void;
 }
@@ -92,7 +110,11 @@ const SpecialSevaPage: React.FC<SpecialSevaPageProps> = ({ onBack }) => {
                     <h1 className="text-4xl font-bold text-maroon">{t('specialSevaPage.title')}</h1>
                     <p className="text-lg text-gray-600 mt-2 max-w-3xl mx-auto">{t('specialSevaPage.subtitle')}</p>
                 </div>
-                {isLoading ? <div className="text-center p-10">Loading Sevas...</div> :
+                {isLoading ? (
+                    <div className="max-w-4xl mx-auto space-y-8">
+                        {[...Array(2)].map((_, i) => <SpecialSevaCardSkeleton key={i} />)}
+                    </div>
+                ) :
                 sevas.length > 0 ?
                 <div className="max-w-4xl mx-auto space-y-8">
                     {sevas.map(seva => (

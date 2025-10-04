@@ -122,6 +122,12 @@ export interface PrasadSubscription {
   createdAt: string;
 }
 
+export interface ItineraryDay {
+    day: number;
+    titleKey: string;
+    descriptionKey: string;
+}
+
 export interface TourPackage {
     _id: string;
     id: number;
@@ -130,6 +136,18 @@ export interface TourPackage {
     imageUrl: string;
     price: number;
     durationKey: string;
+    gallery: string[];
+    itinerary: ItineraryDay[];
+    accommodationKey: string;
+    transportKey: string;
+    mealsKey: string;
+    inclusions: string[];
+    exclusions: string[];
+    cancellationPolicyKey: string;
+    // FIX: Add missing properties to align with backend model and fix type errors.
+    locationKey: string;
+    deityKey: string;
+    bestTimeToVisitKey?: string;
 }
 
 export interface SpecialSeva {

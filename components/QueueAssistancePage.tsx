@@ -98,6 +98,83 @@ const LiveQueueStatusCard: React.FC<{ status: QueueStatus | null; isLoading: boo
     );
 };
 
+const QueueAssistancePageSkeleton: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+    const { t } = useContext(LanguageContext);
+    return (
+        <div className="bg-orange-50/50 min-h-screen">
+            <div className="container mx-auto px-4 py-8 animate-pulse">
+                <button
+                    onClick={onBack}
+                    className="inline-flex items-center gap-2 text-saffron font-semibold hover:underline mb-6"
+                >
+                    <ArrowLeft size={20} /> {t('common.backToHome')}
+                </button>
+                <div className="text-center mb-10">
+                    <div className="h-10 bg-gray-200 rounded-lg w-1/2 mx-auto mb-3"></div>
+                    <div className="h-5 bg-gray-200 rounded-lg w-3/4 mx-auto"></div>
+                </div>
+
+                <div className="max-w-2xl mx-auto bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-orange-100">
+                    {/* Live Status Skeleton */}
+                    <div className="bg-gray-100 border-2 border-dashed border-gray-200 p-4 rounded-xl mb-6 text-center">
+                        <div className="h-5 w-1/3 bg-gray-200 mx-auto mb-3 rounded"></div>
+                        <div className="h-8 w-1/2 bg-gray-200 mx-auto mb-2 rounded"></div>
+                        <div className="h-4 w-1/4 bg-gray-200 mx-auto rounded"></div>
+                    </div>
+
+                    {/* Form Skeleton */}
+                    <div className="h-8 w-1/3 bg-gray-200 mx-auto mb-6 rounded"></div>
+                    <div className="space-y-5">
+                        {/* Package Skeleton */}
+                        <div>
+                            <div className="h-5 w-1/4 bg-gray-200 mb-2 rounded"></div>
+                            <div className="space-y-3">
+                                <div className="h-24 bg-gray-200 rounded-lg"></div>
+                                <div className="h-24 bg-gray-200 rounded-lg"></div>
+                            </div>
+                        </div>
+
+                        {/* Inputs Skeleton */}
+                        <div className="h-14 bg-gray-200 rounded-md"></div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="h-14 bg-gray-200 rounded-md"></div>
+                            <div className="h-14 bg-gray-200 rounded-md"></div>
+                        </div>
+                        <div className="h-14 bg-gray-200 rounded-md"></div>
+
+                        {/* Add-ons Skeleton */}
+                        <div>
+                            <div className="h-5 w-1/3 bg-gray-200 my-4 rounded"></div>
+                            <div className="space-y-3">
+                                <div className="h-20 bg-gray-200 rounded-lg"></div>
+                                <div className="h-20 bg-gray-200 rounded-lg"></div>
+                            </div>
+                        </div>
+
+                        {/* User details inputs */}
+                        <div className="h-14 bg-gray-200 rounded-md"></div>
+                        <div className="h-14 bg-gray-200 rounded-md"></div>
+
+                        {/* Total and buttons skeleton */}
+                        <div className="pt-5 border-t border-orange-200 space-y-4">
+                            <div className="flex justify-between">
+                                <div className="h-5 w-1/3 bg-gray-200 rounded"></div>
+                                <div className="h-5 w-1/4 bg-gray-200 rounded"></div>
+                            </div>
+                            <div className="flex justify-between">
+                                <div className="h-8 w-1/4 bg-gray-200 rounded"></div>
+                                <div className="h-8 w-1/3 bg-gray-200 rounded"></div>
+                            </div>
+                            <div className="h-12 bg-gray-200 rounded-lg mt-4"></div>
+                            <div className="h-12 bg-gray-200 rounded-lg"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const QueueAssistancePage: React.FC<QueueAssistancePageProps> = ({ onBack, onLoginRequired }) => {
     const { user } = useContext(AuthContext);
     const { t, language } = useContext(LanguageContext);
@@ -326,7 +403,7 @@ const QueueAssistancePage: React.FC<QueueAssistancePageProps> = ({ onBack, onLog
     };
     
     if (isLoading) {
-        return <div className="min-h-screen flex items-center justify-center">Loading services...</div>;
+        return <QueueAssistancePageSkeleton onBack={onBack} />;
     }
 
     const getAddOnByType = (type: 'guide' | 'pickup' | 'poojaItems') => addOns.find(a => a.type === type);

@@ -5,6 +5,20 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { LanguageContext } from '../contexts/LanguageContext';
 import TempleCard from './TempleCard';
 
+const TempleCardSkeleton: React.FC = () => (
+    <div className="w-80 flex-shrink-0 snap-center bg-white rounded-lg shadow-lg overflow-hidden animate-pulse">
+        <div className="w-full h-48 bg-gray-200"></div>
+        <div className="p-4">
+            <div className="h-6 w-3/4 bg-gray-200 rounded mb-2"></div>
+            <div className="h-4 w-1/2 bg-gray-200 rounded mb-4"></div>
+            <div className="h-4 w-full bg-gray-200 rounded mb-1"></div>
+            <div className="h-4 w-5/6 bg-gray-200 rounded mb-4"></div>
+            <div className="h-10 w-full bg-gray-200 rounded-full mt-4"></div>
+        </div>
+    </div>
+);
+
+
 const FeaturedTemples: React.FC<{onSelectTemple: (temple: Temple) => void}> = ({ onSelectTemple }) => {
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const { t } = useContext(LanguageContext);
@@ -48,7 +62,9 @@ const FeaturedTemples: React.FC<{onSelectTemple: (temple: Temple) => void}> = ({
                     </div>
                 </div>
                 {isLoading ? (
-                     <div className="text-center p-10 text-gray-500">Loading temples...</div>
+                     <div ref={scrollContainerRef} className="flex space-x-6 overflow-x-auto pb-4 scroll-smooth" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                        {[...Array(4)].map((_, i) => <TempleCardSkeleton key={i} />)}
+                    </div>
                 ) : (
                     <div ref={scrollContainerRef} className="flex space-x-6 overflow-x-auto pb-4 scroll-smooth snap-x snap-mandatory" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                         {temples.map(temple => (

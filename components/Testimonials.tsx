@@ -17,6 +17,19 @@ const TestimonialCard: React.FC<{ testimonial: Testimonial }> = ({ testimonial }
     );
 }
 
+const TestimonialCardSkeleton: React.FC = () => (
+    <div className="flex-shrink-0 w-96 bg-white p-8 rounded-xl shadow-lg animate-pulse">
+        <div className="h-10 w-10 bg-gray-200 rounded mb-4"></div>
+        <div className="h-4 w-full bg-gray-200 rounded mb-2"></div>
+        <div className="h-4 w-full bg-gray-200 rounded mb-2"></div>
+        <div className="h-4 w-3/4 bg-gray-200 rounded mb-6"></div>
+        <div className="flex flex-col items-end">
+            <div className="h-5 w-1/3 bg-gray-200 rounded mb-2"></div>
+            <div className="h-4 w-1/4 bg-gray-200 rounded"></div>
+        </div>
+    </div>
+);
+
 const Testimonials: React.FC = () => {
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const { t } = useContext(LanguageContext);
@@ -59,7 +72,11 @@ const Testimonials: React.FC = () => {
                         </button>
                     </div>
                 </div>
-                {isLoading ? <div className="text-center p-10">Loading testimonials...</div> : (
+                {isLoading ? (
+                     <div ref={scrollContainerRef} className="flex space-x-8 overflow-x-auto pb-4 scroll-smooth" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                        {[...Array(3)].map((_, i) => <TestimonialCardSkeleton key={i} />)}
+                    </div>
+                ) : (
                      <div ref={scrollContainerRef} className="flex space-x-8 overflow-x-auto pb-4 scroll-smooth snap-x snap-mandatory" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                         {testimonials.map(testimonial => (
                             <TestimonialCard key={testimonial.id} testimonial={testimonial} />

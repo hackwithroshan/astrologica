@@ -17,6 +17,11 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
     const [language, setLanguage] = useState('en');
 
     const t = useCallback((key: string, replacements?: { [key: string]: string | number }) => {
+        // FIX: Add safety check to prevent crash if key is null or undefined.
+        if (!key) {
+            return '';
+        }
+        
         const langTranslations = translations[language as keyof typeof translations] || translations.en;
         let translation = key.split('.').reduce((obj, key) => obj && obj[key], langTranslations as any) || key;
 

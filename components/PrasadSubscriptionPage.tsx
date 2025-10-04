@@ -46,6 +46,23 @@ const PrasadCard: React.FC<PrasadCardProps> = ({ prasad, temple, onSubscribe }) 
     );
 };
 
+const PrasadCardSkeleton: React.FC = () => (
+    <div className="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col animate-pulse">
+        <div className="w-full h-48 bg-gray-200"></div>
+        <div className="p-6 flex flex-col flex-grow">
+            <div className="h-6 w-3/4 bg-gray-200 rounded mb-2"></div>
+            <div className="h-4 w-1/2 bg-gray-200 rounded mb-4"></div>
+            <div className="h-4 w-full bg-gray-200 rounded mb-1"></div>
+            <div className="h-4 w-5/6 bg-gray-200 rounded mb-6 flex-grow"></div>
+            <div className="grid grid-cols-2 gap-2 mb-4">
+                <div className="h-14 bg-gray-200 rounded"></div>
+                <div className="h-14 bg-gray-200 rounded"></div>
+            </div>
+            <div className="h-10 w-full bg-gray-200 rounded-full mt-auto"></div>
+        </div>
+    </div>
+);
+
 
 const PrasadSubscriptionPage: React.FC<{ onBack: () => void; onNavigateToDashboard: () => void; }> = ({ onBack, onNavigateToDashboard }) => {
     const { t } = useContext(LanguageContext);
@@ -104,13 +121,17 @@ const PrasadSubscriptionPage: React.FC<{ onBack: () => void; onNavigateToDashboa
                         <h1 className="text-4xl font-bold text-maroon">{t('prasadSubscriptionPage.title')}</h1>
                         <p className="text-lg text-gray-600 mt-2">{t('prasadSubscriptionPage.subtitle')}</p>
                     </div>
-                    {isLoading ? <div className="text-center p-10">Loading Prasad...</div> :
+                    {isLoading ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {[...Array(3)].map((_, i) => <PrasadCardSkeleton key={i} />)}
+                        </div>
+                    ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {offerings.map(({ prasad, temple }) => (
                             <PrasadCard key={`${temple.id}-${prasad.id}`} prasad={prasad} temple={temple} onSubscribe={handleSubscribeClick} />
                         ))}
                     </div>
-                    }
+                    )}
                 </div>
             </div>
             {modalData && user && (

@@ -139,6 +139,61 @@ const TempleSidebar: React.FC<{ temple: Temple; onScrollToPackages: () => void; 
     );
 }
 
+const TempleDetailSkeleton: React.FC = () => (
+    <div className="bg-orange-50/50 animate-pulse">
+        {/* Hero Skeleton */}
+        <div className="relative h-64 md:h-96 bg-gray-200">
+            <div className="absolute bottom-0 left-0 p-4 md:p-8 container mx-auto">
+                <div className="h-12 w-3/4 bg-gray-300 rounded-lg"></div>
+                <div className="h-6 w-1/2 bg-gray-300 rounded-lg mt-4"></div>
+            </div>
+        </div>
+        
+        {/* Nav Skeleton */}
+        <div className="sticky top-[71px] z-30 bg-white/95">
+            <div className="container mx-auto">
+                <nav className="flex justify-center border-b border-gray-200">
+                    {[...Array(4)].map((_, i) => (
+                        <div key={i} className="h-14 w-24 bg-gray-200 m-2 rounded"></div>
+                    ))}
+                </nav>
+            </div>
+        </div>
+
+        {/* Main Content Skeleton */}
+        <div className="container mx-auto px-4 mt-8 pb-16">
+            <div className="lg:grid lg:grid-cols-3 lg:gap-12">
+                <main className="lg:col-span-2 space-y-12">
+                    {/* About Section */}
+                    <div>
+                        <div className="h-8 w-1/3 bg-gray-200 rounded mb-6"></div>
+                        <div className="space-y-3">
+                            <div className="h-5 w-full bg-gray-200 rounded"></div>
+                            <div className="h-5 w-full bg-gray-200 rounded"></div>
+                            <div className="h-5 w-5/6 bg-gray-200 rounded"></div>
+                        </div>
+                    </div>
+                    {/* Packages Section */}
+                    <div>
+                        <div className="h-8 w-1/2 bg-gray-200 rounded mb-6"></div>
+                        <div className="space-y-6">
+                            <div className="h-32 bg-gray-200 rounded-lg"></div>
+                            <div className="h-32 bg-gray-200 rounded-lg"></div>
+                        </div>
+                    </div>
+                </main>
+                {/* Sidebar Skeleton */}
+                <aside className="hidden lg:block lg:col-span-1">
+                    <div className="sticky top-24 space-y-6">
+                        <div className="h-48 bg-gray-200 rounded-xl"></div>
+                        <div className="h-64 bg-gray-200 rounded-xl"></div>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </div>
+);
+
 
 // --- MAIN TEMPLE DETAIL PAGE COMPONENT ---
 const TempleDetailPage: React.FC<TempleDetailPageProps> = ({ temple: initialTemple, onBack, onNavigateToDashboard }) => {
@@ -243,7 +298,7 @@ const TempleDetailPage: React.FC<TempleDetailPageProps> = ({ temple: initialTemp
 
 
     if (isLoading || !temple) {
-        return <div className="min-h-screen bg-orange-50/50 flex items-center justify-center">Loading Temple Details...</div>;
+        return <TempleDetailSkeleton />;
     }
 
     const ePuja = temple.pujas.find(p => p.isEPuja);
