@@ -16,21 +16,23 @@ import TempleListPage from './components/TempleListPage';
 import PrasadSubscriptionPage from './components/PrasadSubscriptionPage';
 import QueueAssistancePage from './components/QueueAssistancePage';
 import TempleToursPage from './components/TempleToursPage';
+import TourDetailPage from './components/TourDetailPage';
 import SpecialSevaPage from './components/SpecialSevaPage';
 import PaymentStatus from './components/PaymentStatus';
-import { Temple, User } from './types';
+import { Temple, User, TourPackage } from './types';
 import { AuthProvider, AuthContext } from './contexts/AuthContext';
 import { LanguageProvider, LanguageContext } from './contexts/LanguageContext';
 import { ToastProvider } from './contexts/ToastContext';
 import ToastContainer from './components/ToastContainer';
 
-type View = 'home' | 'temple' | 'user_dashboard' | 'admin_dashboard' | 'temple_list' | 'prasad_list' | 'queue_assistance' | 'temple_tours' | 'special_seva' | 'payment_status';
+type View = 'home' | 'temple' | 'user_dashboard' | 'admin_dashboard' | 'temple_list' | 'prasad_list' | 'queue_assistance' | 'temple_tours' | 'special_seva' | 'payment_status' | 'tour_detail';
 type TempleListMode = 'all' | 'epuja';
 
 
 const AppContent: React.FC = () => {
     const [view, setView] = useState<View>('home');
     const [selectedTemple, setSelectedTemple] = useState<Temple | null>(null);
+    const [selectedTour, setSelectedTour] = useState<TourPackage | null>(null);
     const [isLoginModalOpen, setLoginModalOpen] = useState(false);
     const [templeListMode, setTempleListMode] = useState<TempleListMode>('all');
     
@@ -80,8 +82,21 @@ const AppContent: React.FC = () => {
         window.scrollTo(0, 0);
     };
 
+    const handleSelectTour = (tour: TourPackage) => {
+        setSelectedTour(tour);
+        setView('tour_detail');
+        window.scrollTo(0, 0);
+    };
+    
+    const handleBackToTours = () => {
+        setSelectedTour(null);
+        setView('temple_tours');
+        window.scrollTo(0, 0);
+    };
+
     const handleBackToHome = () => {
         setSelectedTemple(null);
+        setSelectedTour(null);
         // Clear path for SPA behavior
         if (window.location.pathname !== '/' || window.location.hash !== '') {
              window.history.pushState({}, '', '/');
@@ -158,7 +173,9 @@ const AppContent: React.FC = () => {
             case 'queue_assistance':
                 return <QueueAssistancePage onBack={handleBackToHome} onLoginRequired={handleNavigateToDashboard} />;
             case 'temple_tours':
-                return <TempleToursPage onBack={handleBackToHome} />;
+                return <TempleToursPage onBack={handleBackToHome} onSelectTour={handleSelectTour} />;
+            case 'tour_detail':
+                return <TourDetailPage tour={selectedTour!} onBack={handleBackToTours} />;
             case 'special_seva':
                 return <SpecialSevaPage onBack={handleBackToHome} />;
             case 'payment_status':

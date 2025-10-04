@@ -11,7 +11,9 @@ interface HeaderProps {
 const languages = [
     { code: 'en', name: 'English' },
     { code: 'hi', name: 'हिन्दी' },
-    
+    { code: 'ta', name: 'தமிழ்' },
+    { code: 'te', name: 'తెలుగు' },
+    { code: 'bn', name: 'বাংলা' },
 ];
 
 const Header: React.FC<HeaderProps> = ({ onNavigateToDashboard, onNavigateHome }) => {

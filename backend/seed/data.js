@@ -123,3 +123,22 @@ exports.queueAssistanceAddOns = [
     { name: 'Pickup & Drop Service', description: 'Hassle-free transport from your hotel/location.', price: 1200, active: true, type: 'pickup' },
     { name: 'Pooja Items Kit', description: 'Includes flowers, prasad, and other essentials.', price: 300, active: true, type: 'poojaItems' },
 ];
+
+exports.tourPackages = [
+    {
+        id: 1,
+        nameKey: 'data.tours.goldenTriangle.name',
+        descriptionKey: 'data.tours.goldenTriangle.description',
+        imageUrl: 'https://images.unsplash.com/photo-1564507592333-c60657eea523?q=80&w=2071&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+        price: 25000,
+        durationKey: 'data.tours.durations.5d4n',
+    },
+    {
+        id: 2,
+        nameKey: 'data.tours.charDham.name',
+        descriptionKey: 'data.tours.charDham.description',
+        imageUrl: 'https://images.unsplash.com/photo-1626602155027-9c36214b6c31?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+        price: 45000,
+        durationKey: 'data.tours.durations.10d9n',
+    },
+];

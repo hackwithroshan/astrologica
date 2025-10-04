@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Temple, Service, Testimonial, Booking, User, SeasonalEvent, PrasadSubscription, AppSettings, PaymentPayload, QueueAssistancePackage, QueueAssistanceAddOn } from '../types';
+import { Temple, Service, Testimonial, Booking, User, SeasonalEvent, PrasadSubscription, AppSettings, PaymentPayload, QueueAssistancePackage, QueueAssistanceAddOn, TourPackage } from '../types';
 
 /**
  * Intelligently parses an error object (especially from Axios) to return a user-friendly string.
@@ -107,6 +107,12 @@ export const verifyRazorpayPayment = (data: { razorpay_order_id: string; razorpa
 // PhonePe Payment API
 export const createPhonepeOrder = (payload: PaymentPayload): Promise<{ data: { redirectUrl: string } }> => api.post('/payments/phonepe/create-order', payload);
 export const verifyPhonepePayment = (transactionId: string): Promise<{ data: { success: boolean; message: string; data?: any } }> => api.post('/payments/phonepe/verify-payment', { transactionId });
+
+// Tour Packages API
+export const getTourPackages = (): Promise<{ data: { data: TourPackage[] } }> => api.get('/tours');
+export const addTourPackage = (data: Partial<TourPackage>) => api.post('/tours', data);
+export const updateTourPackage = (id: number, data: Partial<TourPackage>) => api.put(`/tours/${id}`, data);
+export const deleteTourPackage = (id: number) => api.delete(`/tours/${id}`);
 
 // Queue Assistance API (Live Status Placeholder)
 export const getQueueStatus = (templeId: string) => {

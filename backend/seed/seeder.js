@@ -14,9 +14,10 @@ const Content = require('../models/Content');
 const Subscription = require('../models/Subscription');
 const QueueAssistancePackage = require('../models/QueueAssistancePackage');
 const QueueAssistanceAddOn = require('../models/QueueAssistanceAddOn');
+const TourPackage = require('../models/TourPackage');
 
 // Load data
-const { temples, users, testimonials, services, seasonalEvent, appSettings, queueAssistancePackages, queueAssistanceAddOns } = require('./data');
+const { temples, users, testimonials, services, seasonalEvent, appSettings, queueAssistancePackages, queueAssistanceAddOns, tourPackages } = require('./data');
 
 // Connect to DB
 mongoose.connect(process.env.MONGO_URI, {
@@ -35,6 +36,7 @@ const importData = async () => {
     await Subscription.deleteMany();
     await QueueAssistancePackage.deleteMany();
     await QueueAssistanceAddOn.deleteMany();
+    await TourPackage.deleteMany();
 
     await Temple.create(temples);
     await User.create(users);
@@ -43,6 +45,7 @@ const importData = async () => {
     await Content.create([seasonalEvent, appSettings]);
     await QueueAssistancePackage.create(queueAssistancePackages);
     await QueueAssistanceAddOn.create(queueAssistanceAddOns);
+    await TourPackage.create(tourPackages);
 
 
     console.log('Data Imported...');
@@ -64,6 +67,7 @@ const deleteData = async () => {
     await Subscription.deleteMany();
     await QueueAssistancePackage.deleteMany();
     await QueueAssistanceAddOn.deleteMany();
+    await TourPackage.deleteMany();
     console.log('Data Destroyed...');
     process.exit();
   } catch (err) {

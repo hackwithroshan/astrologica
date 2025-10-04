@@ -44,6 +44,7 @@ const userRoutes = require('./routes/userRoutes');
 const subscriptionRoutes = require('./routes/subscriptionRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const queueAssistanceRoutes = require('./routes/queueAssistanceRoutes');
+const tourRoutes = require('./routes/tourRoutes');
 
 
 const app = express();
@@ -86,6 +87,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/queue-assistance', queueAssistanceRoutes);
+app.use('/api/tours', tourRoutes);
 
 
 // Error Handler Middleware (must be after mounting routes)

@@ -58,6 +58,7 @@ export interface QuickAction {
 }
 
 export interface Service {
+    _id: string;
     id: number;
     titleKey: string;
     descriptionKey: string;
@@ -65,6 +66,7 @@ export interface Service {
 }
 
 export interface Testimonial {
+    _id: string;
     id: number;
     quote: string;
     author: string;
@@ -121,6 +123,7 @@ export interface PrasadSubscription {
 }
 
 export interface TourPackage {
+    _id: string;
     id: number;
     nameKey: string;
     descriptionKey: string;

@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useContext, useCallback, useMemo } from 'react';
 import {
     LogOut, Settings, Search, Bell, ChevronDown, LayoutDashboard, Building2, Users, BookOpen, CreditCard,
-    BarChart2, FileText, Settings2, PlusCircle, Edit, Trash2, X, Image as ImageIcon, ChevronsUpDown, MoreHorizontal, AlertTriangle, ArrowUp, ArrowDown, Sparkles as SparklesIcon, ClipboardList, Languages, Car, Flower2, Tag, Gift, Calendar, RefreshCw, Info
+    BarChart2, FileText, Settings2, PlusCircle, Edit, Trash2, X, Image as ImageIcon, ChevronsUpDown, MoreHorizontal, AlertTriangle, ArrowUp, ArrowDown, Sparkles as SparklesIcon, ClipboardList, Languages, Car, Flower2, Tag, Gift, Calendar, RefreshCw, Info, Bus
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-import { User, Temple, Booking, Puja, BookingStatus, PopulatedUser, SeasonalEvent, Testimonial, AppSettings, Service, QueueAssistancePackage, QueueAssistanceAddOn, PrasadSubscription, AvailablePrasad } from '../types';
+import { User, Temple, Booking, Puja, BookingStatus, PopulatedUser, SeasonalEvent, Testimonial, AppSettings, Service, QueueAssistancePackage, QueueAssistanceAddOn, PrasadSubscription, AvailablePrasad, TourPackage } from '../types';
 import { AuthContext } from '../contexts/AuthContext';
 import { LanguageContext } from '../contexts/LanguageContext';
 import { ToastContext } from '../contexts/ToastContext';
@@ -15,14 +15,15 @@ import {
     getAppSettings, updateAppSettings, getServices, addService, updateService, deleteService,
     getQueuePackages, addQueuePackage, updateQueuePackage, deleteQueuePackage,
     getQueueAddOns, addQueueAddOn, updateQueueAddOn, deleteQueueAddOn,
-    getAllSubscriptions, cancelSubscription
+    getAllSubscriptions, cancelSubscription,
+    getTourPackages, addTourPackage, updateTourPackage, deleteTourPackage
 } from '../services/api';
 
 interface AdminDashboardProps {
     onLogout: () => void;
 }
 
-type AdminView = 'dashboard' | 'temples' | 'users' | 'bookings' | 'services' | 'payments' | 'reports' | 'content' | 'settings' | 'queue_assistance' | 'prasadSubscriptions';
+type AdminView = 'dashboard' | 'temples' | 'users' | 'bookings' | 'services' | 'payments' | 'reports' | 'content' | 'settings' | 'queue_assistance' | 'prasadSubscriptions' | 'templeTours';
 
 // --- MAIN COMPONENT ---
 
@@ -56,6 +57,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                 return <QueueAssistanceManagement />;
             case 'prasadSubscriptions':
                 return <PrasadSubscriptionManagement />;
+            case 'templeTours':
+                return <TourManagement />;
             default:
                 return <div className="p-8"><h2 className="text-2xl font-bold">{t(`adminDashboard.menu.${view}`)}</h2><p>This section is under construction.</p></div>;
         }
@@ -85,6 +88,7 @@ const Sidebar: React.FC<{ currentView: AdminView, setView: (view: AdminView) => 
         { id: 'users', icon: Users, label: t('adminDashboard.menu.users') },
         { id: 'bookings', icon: BookOpen, label: t('adminDashboard.menu.bookings') },
         { id: 'prasadSubscriptions', icon: Gift, label: t('adminDashboard.menu.prasadSubscriptions') },
+        { id: 'templeTours', icon: Bus, label: t('adminDashboard.menu.templeTours') },
         { id: 'queue_assistance', icon: ClipboardList, label: t('adminDashboard.menu.queueAssistance') },
         { id: 'services', icon: SparklesIcon, label: t('adminDashboard.menu.services') },
         { id: 'payments', icon: CreditCard, label: t('adminDashboard.menu.payments') },
@@ -96,7 +100,7 @@ const Sidebar: React.FC<{ currentView: AdminView, setView: (view: AdminView) => 
     return (
         <aside className={`fixed top-0 left-0 h-full bg-maroon text-white w-64 flex flex-col transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
             <div className="flex items-center justify-center h-20 border-b border-saffron/20 px-4">
-                <img src="/public/image/logo white final.png" alt="astrologica logo" className="h-10" />
+                <img src="https://res.cloudinary.com/dvrqft9ov/image/upload/v1759477298/asrologica2_1_gzs09c.png" alt="astrologica logo" className="h-10" />
             </div>
             <nav className="flex-1 py-4">
                 <ul>
@@ -1354,6 +1358,191 @@ const PrasadSubscriptionManagement: React.FC = () => {
                     subscription={selectedSubForDetails}
                 />
             )}
+        </div>
+    );
+};
+
+// --- Tour Management ---
+const TourFormModal: React.FC<{ isOpen: boolean; onClose: () => void; onSave: (data: Partial<TourPackage>) => Promise<void>; tour: Partial<TourPackage> | null; mode: 'add' | 'edit' }> = ({ isOpen, onClose, onSave, tour, mode }) => {
+    const { t } = useContext(LanguageContext);
+    const [formData, setFormData] = useState<Partial<TourPackage>>({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    useEffect(() => {
+        setFormData(tour || { nameKey: '', descriptionKey: '', imageUrl: '', price: 0, durationKey: '' });
+    }, [tour, isOpen]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value, type } = e.target;
+        setFormData(prev => ({ ...prev, [name]: type === 'number' ? parseFloat(value) || 0 : value }));
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        await onSave(formData);
+        setIsSubmitting(false);
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg shadow-2xl w-full max-w-lg" onClick={e => e.stopPropagation()}>
+                <div className="flex justify-between items-center p-4 border-b">
+                    <h2 className="text-xl font-bold text-maroon">{mode === 'edit' ? t('adminDashboard.tours.editTour') : t('adminDashboard.tours.addNew')}</h2>
+                    <button onClick={onClose}><X size={24} /></button>
+                </div>
+                <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium">{t('adminDashboard.tours.form.nameKey')}</label>
+                        <input type="text" name="nameKey" value={formData.nameKey || ''} onChange={handleChange} className="w-full p-2 border rounded" required />
+                    </div>
+                     <div>
+                        <label className="block text-sm font-medium">{t('adminDashboard.tours.form.descriptionKey')}</label>
+                        <input type="text" name="descriptionKey" value={formData.descriptionKey || ''} onChange={handleChange} className="w-full p-2 border rounded" required />
+                    </div>
+                     <div>
+                        <label className="block text-sm font-medium">{t('adminDashboard.tours.form.imageUrl')}</label>
+                        <input type="text" name="imageUrl" value={formData.imageUrl || ''} onChange={handleChange} className="w-full p-2 border rounded" required />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium">{t('adminDashboard.tours.form.price')}</label>
+                            <input type="number" name="price" value={formData.price || 0} onChange={handleChange} className="w-full p-2 border rounded" required />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium">{t('adminDashboard.tours.form.durationKey')}</label>
+                            <input type="text" name="durationKey" value={formData.durationKey || ''} onChange={handleChange} className="w-full p-2 border rounded" required />
+                        </div>
+                    </div>
+                </form>
+                 <div className="flex justify-end p-4 border-t bg-gray-50">
+                    <button onClick={onClose} type="button" className="mr-2 py-2 px-4 rounded bg-gray-200 hover:bg-gray-300">{t('adminDashboard.temples.buttons.cancel')}</button>
+                    <button onClick={handleSubmit} type="submit" disabled={isSubmitting} className="py-2 px-4 rounded bg-saffron text-white hover:bg-orange-500 disabled:bg-gray-400">
+                        {isSubmitting ? 'Saving...' : t('adminDashboard.temples.buttons.save')}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const TourManagement: React.FC = () => {
+    const { t } = useContext(LanguageContext);
+    const toastContext = useContext(ToastContext);
+    const [tours, setTours] = useState<TourPackage[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+    const [selectedTour, setSelectedTour] = useState<TourPackage | null>(null);
+    const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
+
+    const fetchTours = useCallback(async () => {
+        try {
+            setIsLoading(true);
+            const res = await getTourPackages();
+            setTours(res.data.data);
+        } catch (err) {
+            toastContext?.addToast(getApiErrorMessage(err), 'error');
+        } finally {
+            setIsLoading(false);
+        }
+    }, [toastContext]);
+
+    useEffect(() => {
+        fetchTours();
+    }, [fetchTours]);
+
+    const handleOpenAdd = () => {
+        setSelectedTour(null);
+        setModalMode('add');
+        setIsModalOpen(true);
+    };
+
+    const handleOpenEdit = (tour: TourPackage) => {
+        setSelectedTour(tour);
+        setModalMode('edit');
+        setIsModalOpen(true);
+    };
+
+    const handleOpenDelete = (tour: TourPackage) => {
+        setSelectedTour(tour);
+        setIsConfirmOpen(true);
+    };
+
+    const handleCloseModals = () => {
+        setIsModalOpen(false);
+        setIsConfirmOpen(false);
+        setSelectedTour(null);
+    };
+
+    const handleSave = async (data: Partial<TourPackage>) => {
+        try {
+            if (modalMode === 'edit' && selectedTour) {
+                await updateTourPackage(selectedTour.id, data);
+                toastContext?.addToast('Tour updated successfully!', 'success');
+            } else {
+                await addTourPackage(data);
+                toastContext?.addToast('Tour added successfully!', 'success');
+            }
+            handleCloseModals();
+            fetchTours();
+        } catch (err) {
+            toastContext?.addToast(getApiErrorMessage(err), 'error');
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!selectedTour) return;
+        try {
+            await deleteTourPackage(selectedTour.id);
+            toastContext?.addToast('Tour deleted successfully!', 'success');
+            handleCloseModals();
+            fetchTours();
+        } catch (err) {
+            toastContext?.addToast(getApiErrorMessage(err), 'error');
+        }
+    };
+
+    return (
+        <div>
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-3xl font-bold text-gray-800">{t('adminDashboard.tours.title')}</h1>
+                <button onClick={handleOpenAdd} className="flex items-center gap-2 bg-saffron text-white font-bold py-2 px-4 rounded-lg hover:bg-orange-500">
+                    <PlusCircle size={20} />
+                    {t('adminDashboard.tours.addNew')}
+                </button>
+            </div>
+            <div className="bg-white rounded-lg shadow overflow-x-auto">
+                {isLoading ? <p className="p-6 text-center">Loading tours...</p> : (
+                <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                        <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('adminDashboard.tours.table.name')}</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('adminDashboard.tours.table.duration')}</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('adminDashboard.tours.table.price')}</th>
+                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">{t('adminDashboard.tours.table.actions')}</th>
+                        </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                        {tours.map(tour => (
+                            <tr key={tour.id}>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{t(tour.nameKey)}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{t(tour.durationKey)}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-700">₹{tour.price.toLocaleString('en-IN')}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <button onClick={() => handleOpenEdit(tour)} className="text-indigo-600 hover:text-indigo-900 mr-4"><Edit size={18} /></button>
+                                    <button onClick={() => handleOpenDelete(tour)} className="text-red-600 hover:text-red-900"><Trash2 size={18} /></button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+                )}
+            </div>
+             {isModalOpen && <TourFormModal isOpen={isModalOpen} onClose={handleCloseModals} onSave={handleSave} tour={selectedTour} mode={modalMode} />}
+            {isConfirmOpen && <ConfirmationModal isOpen={isConfirmOpen} onClose={handleCloseModals} onConfirm={handleDelete} title={t('adminDashboard.tours.confirmDelete')} message={`Are you sure you want to delete "${t(selectedTour?.nameKey || '')}"?`} />}
         </div>
     );
 };
@@ -2623,24 +2812,23 @@ const SubscriptionDetailsModal: React.FC<{ isOpen: boolean; onClose: () => void;
                         <div className="flex justify-between items-center"><span className="text-gray-600">{t('adminDashboard.prasadSubscriptions.table.status')}:</span> <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${subscription.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{subscription.status}</span></div>
                         <div className="flex justify-between items-center"><span className="text-gray-600">{t('dashboard.subscriptions.frequency')}:</span> <span className="font-semibold">{subscription.frequency}</span></div>
                         <div className="flex justify-between items-center"><span className="text-gray-600">{t('adminDashboard.bookings.amount')}:</span> <span className="font-semibold">₹{subscription.price.toLocaleString('en-IN')}</span></div>
-                        <div className="flex justify-between items-center"><span className="text-gray-600">{t('adminDashboard.prasadSubscriptions.table.nextDelivery')}:</span> <span className="font-semibold">{new Date(subscription.nextDeliveryDate + 'T00:00:00').toLocaleDateString(language, { year: 'numeric', month: 'long', day: 'numeric' })}</span></div>
+                        <div className="flex justify-between items-center"><span className="text-gray-600">{t('adminDashboard.prasadSubscriptions.table.nextDelivery')}:</span> <span className="font-semibold">{new Date(subscription.nextDeliveryDate + 'T00:00:00').toLocaleDateString(language, { year: 'numeric', month: 'short', day: 'numeric' })}</span></div>
                         <div className="flex justify-between items-center"><span className="text-gray-600">{t('adminDashboard.prasadSubscriptions.subscribedOn')}:</span> <span className="font-semibold">{new Date(subscription.createdAt).toLocaleDateString(language, { year: 'numeric', month: 'long', day: 'numeric' })}</span></div>
                     </div>
-                    
-                    {/* IDs */}
-                    <div className="pt-4 border-t space-y-3">
+
+                    {/* Transaction IDs */}
+                    <div className="space-y-2 text-sm">
                         <div>
-                            <p className="font-semibold text-gray-600 mb-1 text-sm">{t('adminDashboard.prasadSubscriptions.subscriptionId')}:</p>
+                            <p className="font-semibold text-gray-600">{t('adminDashboard.prasadSubscriptions.subscriptionId')}:</p>
                             <p className="font-mono bg-gray-100 text-gray-800 p-2 rounded text-xs break-words">{subscription._id}</p>
                         </div>
                         <div>
-                            <p className="font-semibold text-gray-600 mb-1 text-sm">{t('adminDashboard.prasadSubscriptions.paymentTransactionId')}:</p>
+                            <p className="font-semibold text-gray-600">{t('adminDashboard.prasadSubscriptions.paymentTransactionId')}:</p>
                             <p className="font-mono bg-gray-100 text-gray-800 p-2 rounded text-xs break-words">{subscription.id}</p>
                         </div>
                     </div>
-
                 </div>
-                <div className="flex justify-end p-4 border-t bg-gray-50">
+                 <div className="flex justify-end p-4 border-t bg-gray-50">
                     <button onClick={onClose} type="button" className="py-2 px-4 rounded bg-gray-200 hover:bg-gray-300">Close</button>
                 </div>
             </div>

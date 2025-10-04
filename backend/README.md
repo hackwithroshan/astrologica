@@ -7,7 +7,7 @@ This is the backend server for the astrologica application. It is built with Nod
 - **JWT Authentication:** Secure user registration and login using JSON Web Tokens.
 - **Role-Based Access Control:** Differentiates between regular users, temple managers, and administrators.
 - **CRUD Operations:** Full Create, Read, Update, and Delete functionality for temples, services, and other content.
-- **Secure Payment Gateway:** Server-side order creation for Razorpay payments.
+- **Secure Payment Gateway:** Server-side order creation for Razorpay and PhonePe payments.
 - **MongoDB Integration:** Uses Mongoose for elegant object data modeling with MongoDB.
 - **Centralized Error Handling:** Robust and user-friendly error responses.
 
@@ -19,7 +19,7 @@ This is the backend server for the astrologica application. It is built with Nod
 - **Mongoose:** Object Data Modeling (ODM) library for MongoDB.
 - **jsonwebtoken (JWT):** For creating and verifying access tokens.
 - **bcryptjs:** For hashing passwords.
-- **Razorpay:** For processing payments.
+- **Razorpay & PhonePe:** For processing payments.
 - **dotenv:** For managing environment variables.
 - **cors:** For enabling Cross-Origin Resource Sharing.
 
@@ -68,6 +68,30 @@ Open the new `.env` file in your code editor and fill in your actual values.
 
 **All variables listed in this file are required for the server to start.**
 
+```env
+# The port your backend server will run on
+PORT=5000
+
+# Your MongoDB connection string
+MONGO_URI=mongodb+srv://user:password@cluster.mongodb.net/yourDatabase
+
+# A long, random, and secret string for security
+JWT_SECRET=your_super_secret_and_random_string_for_jwt
+
+# Your Razorpay API keys (use Test keys for local development)
+RAZORPAY_KEY_ID=your_razorpay_key_id
+RAZORPAY_KEY_SECRET=your_razorpay_key_secret
+
+# PhonePe Test Gateway Credentials (from your PhonePe developer account)
+PHONEPE_MERCHANT_ID=your_phonepe_merchant_id
+PHONEPE_SALT_KEY=your_phonepe_salt_key
+
+# The full URL of your frontend application (used for payment redirects)
+# For local dev, this is usually http://localhost:3000
+FRONTEND_URL=http://localhost:3000
+```
+
+
 ### 3. Seed the Database (For Initial Setup)
 
 To populate the database with initial sample data, run the seeder script. **Warning: This will delete all existing data in the collections.**
@@ -83,28 +107,24 @@ To run the server in development mode (which automatically restarts on file chan
 ```bash
 npm run dev
 ```
+If the server fails to start, it will print a list of any missing environment variables. Make sure your `.env` file is configured correctly.
 
 The server will start on port 5000 and is now ready to receive requests from the frontend application.
 
 ---
 ## Troubleshooting
 
+### Server Fails to Start
+
+If the server immediately stops after running `npm run dev`, check the console for a "FATAL ERROR" message. This message will list exactly which environment variables are missing from your `.env` file. Add them to fix the issue.
+
 ### Razorpay Payment Error: "Uh! oh! Something went wrong"
 
 This error on the Razorpay checkout page almost always means there is a problem with the merchant's configuration (your backend setup). The most common causes are:
 
-1.  **Incorrect API Keys:** The `RAZORPAY_KEY_ID` or `RAZORPAY_KEY_SECRET` in your `.env` file are wrong, or you are mixing test keys with live mode. Double-check that you have copied the correct **Live Keys** from your Razorpay dashboard into the `.env` file.
+1.  **Incorrect API Keys:** The `RAZORPAY_KEY_ID` or `RAZORPAY_KEY_SECRET` in your `.env` file are wrong, or you are mixing test keys with live mode. Double-check that you have copied the correct keys from your Razorpay dashboard into the `.env` file.
 2.  **Server Not Running:** Ensure your backend server is running (`npm run dev`) and has successfully connected to the database without any startup errors.
 3.  **Account Not Live:** Your Razorpay account may not be fully activated for live payments. Please check your account status on the Razorpay dashboard.
-
-To use the keys you have, your `.env` file should look like this:
-
-```env
-# ... other variables
-# Example using your live keys:
-RAZORPAY_KEY_ID=rzp_live_RNPcIWCuyzmN11
-RAZORPAY_KEY_SECRET=DSxVqzdy712qbchv18ZDSW8F
-```
 
 ---
 ## API Endpoints

@@ -268,6 +268,7 @@ export const translations = {
             settings: 'Settings',
             queueAssistance: 'Queue Assistance',
             prasadSubscriptions: 'Prasad Subscriptions',
+            templeTours: 'Temple Tours',
         },
         profile: {
             settings: 'Settings',
@@ -432,6 +433,25 @@ export const translations = {
                 addBenefit: 'Add Benefit',
                 addPuja: 'Add Puja',
                 addPrasad: 'Add Prasad',
+            }
+        },
+        tours: {
+            title: 'Temple Tours Management',
+            addNew: 'Add New Tour',
+            editTour: 'Edit Tour Package',
+            confirmDelete: 'Are you sure you want to delete this tour package?',
+            table: {
+                name: 'Tour Name',
+                duration: 'Duration',
+                price: 'Price',
+                actions: 'Actions',
+            },
+            form: {
+                nameKey: 'Name Key',
+                descriptionKey: 'Description Key',
+                imageUrl: 'Image URL',
+                price: 'Price (INR)',
+                durationKey: 'Duration Key',
             }
         },
         users: {
@@ -650,6 +670,22 @@ export const translations = {
       title: 'Book a Special Seva',
       subtitle: 'Participate in exclusive rituals for your family\'s well-being and prosperity.',
       benefits: 'Spiritual Benefits'
+    },
+    data: {
+      tours: {
+        goldenTriangle: {
+            name: 'Spiritual Golden Triangle Tour',
+            description: 'Visit the most sacred temples in Delhi, Agra, and Jaipur. A journey of faith and history.'
+        },
+        charDham: {
+            name: 'Himalayan Char Dham Yatra',
+            description: 'A holy pilgrimage to the four abodes of Yamunotri, Gangotri, Kedarnath, and Badrinath.'
+        },
+        durations: {
+            '5d4n': '5 Days / 4 Nights',
+            '10d9n': '10 Days / 9 Nights'
+        }
+      }
     }
   },
   hi: {
@@ -1041,6 +1077,7 @@ export const translations = {
       menu: {
         queueAssistance: 'कतार सहायता',
         prasadSubscriptions: 'प्रसाद सदस्यता',
+        templeTours: 'मंदिर टूर',
       },
       bookings: {
         title: 'सभी उपयोगकर्ता बुकिंग',
@@ -1203,6 +1240,25 @@ export const translations = {
             addPrasad: 'प्रसाद जोड़ें',
         }
       },
+      tours: {
+        title: 'मंदिर टूर प्रबंधन',
+        addNew: 'नया टूर जोड़ें',
+        editTour: 'टूर पैकेज संपादित करें',
+        confirmDelete: 'क्या आप वाकई इस टूर पैकेज को हटाना चाहते हैं?',
+        table: {
+            name: 'टूर का नाम',
+            duration: 'अवधि',
+            price: 'मूल्य',
+            actions: 'कार्रवाई',
+        },
+        form: {
+            nameKey: 'नाम कुंजी',
+            descriptionKey: 'विवरण कुंजी',
+            imageUrl: 'छवि यूआरएल',
+            price: 'मूल्य (INR)',
+            durationKey: 'अवधि कुंजी',
+        }
+      },
       settings: {
         title: 'एप्लिकेशन सेटिंग्स',
         form: {
@@ -1215,6 +1271,22 @@ export const translations = {
             save: 'बदलाव सहेजें'
         },
         saveSuccess: 'सेटिंग्स सफलतापूर्वक अपडेट की गईं!'
+      }
+    },
+    data: {
+      tours: {
+        goldenTriangle: {
+            name: 'आध्यात्मिक स्वर्ण त्रिभुज यात्रा',
+            description: 'दिल्ली, आगरा और जयपुर के सबसे पवित्र मंदिरों के दर्शन करें। आस्था और इतिहास की यात्रा।'
+        },
+        charDham: {
+            name: 'हिमालयी चार धाम यात्रा',
+            description: 'यमुनोत्री, गंगोत्री, केदारनाथ और बद्रीनाथ के चार धामों की पवित्र तीर्थयात्रा।'
+        },
+        durations: {
+            '5d4n': '5 दिन / 4 रातें',
+            '10d9n': '10 दिन / 9 रातें'
+        }
       }
     }
   }
